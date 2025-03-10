@@ -1,6 +1,6 @@
 <x-layout>
     <div>
-        <livewire:component.breadcrumbs />
+        @include('components.breadcrumbs')
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Master Data</h1>
         </div>

@@ -1,6 +1,7 @@
 <x-layout>
 
 
+    @include('components.breadcrumbs')
     <div class="bg-white shadow-md rounded-lg p-4 m-2">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold">Daftar Kategori</h2>
@@ -19,25 +20,61 @@
 
 
             {{-- table --}}
-            <div class="overflow-x-auto shadow-md sm:rounded-lg mt-2">
+            <div id="table-container" class="overflow-x-auto shadow-md sm:rounded-lg mt-2">
                 @include('master_data.kategori.partials.table')
             </div>
+
+
+            {{-- Edit modal --}}
+            @foreach ($kategori as $item)
+            @endforeach
+
 
         </div>
 
 
     </div>
-    <script>
-        function toggleDropdown(event, id) {
-            event.stopPropagation();
-            document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
-                if (el.id !== id) el.classList.add('hidden');
-            });
-            document.getElementById(id).classList.toggle('hidden');
-        }
 
-        document.addEventListener('click', function() {
-            document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
+    <script>
+        const reportSearchRoute = @json(route('kategori.index'));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup event listeners
+            document.getElementById('search').addEventListener('input', handleSearchAndFilter);
+            document.querySelectorAll('.filter-input').forEach(input => {
+                input.addEventListener('change', handleSearchAndFilter);
+            });
+
+            function handleSearchAndFilter() {
+                const selectedFilters = {};
+
+                // Ambil nilai search
+                const query = encodeURIComponent(document.getElementById('search').value);
+
+                // Ambil semua filter yang dicek
+                document.querySelectorAll('.filter-input:checked').forEach(input => {
+                    selectedFilters[input.name] = input.value;
+                });
+
+                const queryString = new URLSearchParams({
+                    ...selectedFilters,
+                    search: query
+                }).toString();
+
+                fetch(`${reportSearchRoute}?${queryString}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        document.getElementById('table-container').innerHTML = data.html;
+                    })
+                    .catch(error => console.error('Error fetching filter results:', error));
+            }
         });
     </script>
 

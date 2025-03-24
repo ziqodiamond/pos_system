@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div x-show="addModal" @click.away="addModal = false"
+<div x-show="addModal" @click.away="addModal = false" x-cloak
     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
     <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
 
@@ -36,12 +36,77 @@
                 @include('master_data.barang.partials.add-barang.step4')
             </div>
 
+            <script>
+                function dropdown(type) {
+                    return {
+                        open: false,
+                        search: '',
+                        watchSearch() {
+                            this.open = true;
+                        },
+                        selected: {},
+                        kategoris: type === 'kategori' ? @json($kategoris) : [],
+                        pajaks: type === 'pajak' ? @json($pajaks) : [],
+                        satuans: type === 'satuan' ? @json($satuans) : [],
+                        satuanKonversis: type === 'satuanKonversi' ? @json($satuanKonversis) : [],
+                        satuanTujuans: type === 'satuanTujuan' ? @json($satuans) : [],
+
+                        get filteredKategoris() {
+                            return this.search.trim() === '' ? this.kategoris : this.kategoris.filter(kategori => kategori.nama
+                                .toLowerCase().includes(this.search.toLowerCase()));
+                        },
+                        get filteredPajaks() {
+                            return this.search.trim() === '' ? this.pajaks : this.pajaks.filter(pajak => pajak.nama
+                                .toLowerCase().includes(this.search.toLowerCase()));
+                        },
+                        get filteredSatuans() {
+                            return this.search.trim() === '' ? this.satuans : this.satuans.filter(satuan => satuan.nama
+                                .toLowerCase().includes(this.search.toLowerCase()));
+                        },
+                        get filteredSatuanKonversis() {
+                            return this.search.trim() === '' ?
+                                this.satuanKonversis :
+                                this.satuanKonversis.filter(satuan => satuan.nama.toLowerCase().includes(this
+                                    .search.toLowerCase()));
+                        },
+                        get filteredSatuanTujuans() {
+                            return this.search.trim() === '' ? this.satuanTujuans : this.satuanTujuans.filter(satuan =>
+                                satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                        },
+
+                        init() {
+                            this.selected = (this.kategoris || this.pajaks || this.satuans || this.satuanKonversis || this
+                                .filteredSatuanTujuans).find(item =>
+                                item.id ===
+                                {{ old('kategori_id') ?? 'null' }}) || {};
+                        },
+                        select(item) {
+                            this.selected = item;
+                            this.search = item.nama;
+                            this.close();
+                        },
+                        close() {
+                            this.open = false;
+                        },
+                        openDropdown() {
+                            this.open = true;
+                        }
+                    };
+                }
+            </script>
+
             <!-- Navigation Buttons -->
             <div class="mt-4 flex items-center justify-between w-full relative">
                 <!-- Tombol Kembali -->
-                <button type="button" @click="step--" class="px-4 py-2 bg-gray-500 text-white rounded w-20"
+                <button type="button" @click="step--"
+                    class="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded w-28"
                     :class="step === 1 ? 'invisible' : 'visible'">
-                    Kembali
+                    <svg class="w-6 h-6 text-white mr-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 12h14M5 12l4-4m-4 4 4 4" />
+                    </svg>
+                    <span class="text-sm">Kembali</span>
                 </button>
 
                 <!-- Indikator Step -->
@@ -52,21 +117,41 @@
                     </template>
                 </div>
 
-                <button type="button" @click="step++" class="px-4 py-2 bg-blue-500 text-white rounded w-20"
+                <button type="button" @click="step++"
+                    class="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded w-28"
                     :class="step === 4 ? 'invisible' : 'visible'">
-                    Lanjut
-                </button>
 
+                    <span class="text-sm">Lanjut</span>
+                    <svg class="w-6 h-6 text-white ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 12H5m14 0-4 4m4-4-4-4" />
+                    </svg>
+                </button>
             </div>
 
             <!-- Simpan -->
-            <button type="submit" class="mt-4 w-full px-4 py-2 bg-green-500 text-white rounded">
-                Simpan
+            <button type="submit"
+                class="mt-4 w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded flex items-center justify-center">
+                <svg class="w-5 h-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                    viewBox="0 0 16 16">
+                    <path d="M11 2H9v3h2z" />
+                    <path
+                        d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v4.5A1.5 1.5 0 0 1 11.5 7h-7A1.5 1.5 0 0 1 3 5.5V1H1.5a.5.5 0 0 0-.5.5m3 4a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V1H4zM3 15h10v-4.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5z" />
+                </svg>
+                <span class="text-sm">Simpan</span>
             </button>
+
             <button type="button" @click="addModal = false"
-                class="mt-2 w-full px-4 py-2 bg-red-500 text-white rounded">
-                Tutup
+                class="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded flex items-center justify-center">
+                <svg class="w-5 h-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                    fill="none">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18 17.94 6M18 18 6.06 6" />
+                </svg>
+                <span class="text-sm">Tutup</span>
             </button>
+
         </form>
 
     </div>

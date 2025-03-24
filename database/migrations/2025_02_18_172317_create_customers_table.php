@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string("alamat");
             $table->string("telepon");
             $table->string("email");
-            $table->date("tanggal_lahit");
+            $table->date("tanggal_lahir");
             $table->enum("status", ["active", "inactive"]);
             $table->timestamps();
             $table->softDeletes();

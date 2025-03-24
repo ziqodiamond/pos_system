@@ -38,25 +38,56 @@
 
 <body class="h-full bg-gray-200 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div class="min-h-full">
-
-
+        <!-- Notification Alert -->
+        @if (session()->has('success') || session()->has('error'))
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="fixed top-4 right-4 z-50">
+                @if (session()->has('success'))
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg">
+                        <div class="flex items-center">
+                            <div class="py-1">
+                                <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <div>{{ session('success') }}</div>
+                            <button @click="show = false" class="ml-4">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @endif
+                @if (session()->has('error'))
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg">
+                        <div class="flex items-center">
+                            <div class="py-1">
+                                <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </div>
+                            <div>{{ session('error') }}</div>
+                            <button @click="show = false" class="ml-4">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
 
         @include('layouts.sidebar')
 
         <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-
-
-            {{-- <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"> --}}
             {{ $slot }}
-            {{-- </div> --}}
         </main>
-
     </div>
-
-
-
-
-
 </body>
 
 

@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div x-show="addModal" @click.away="addModal = false"
+<div x-show="addModal" @click.away="addModal = false" x-data="{ statusText: 'Nonaktif' }"
     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
     <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
 
@@ -26,14 +26,18 @@
                 <input type="text" name="nama" id="nama"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
             </div>
-            <div class="mt-4">
+            <div class="mt-4" x-data="{ statusChecked: true }">
                 <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                <select name="status" id="status" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+                <label class="inline-flex items-center cursor-pointer mt-2">
+                    <input type="checkbox" name="status" id="status" value="aktif" class="sr-only peer"
+                        @change="statusChecked = $event.target.checked" x-model="statusChecked" checked>
+                    <div
+                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600">
+                    </div>
+                    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        x-text="statusChecked ? 'Aktif' : 'Nonaktif'">Aktif</span>
+                </label>
             </div>
-
             <button type="submit" class="mt-4 w-full px-4 py-2 bg-green-500 text-white rounded">
                 Simpan
             </button>

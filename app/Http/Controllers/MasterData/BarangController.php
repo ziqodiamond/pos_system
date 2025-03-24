@@ -6,9 +6,11 @@ use App\Models\Pajak;
 use App\Models\Barang;
 use App\Models\Satuan;
 use App\Models\Kategori;
+use App\Models\Konversi;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\BreadcrumbController;
+use Illuminate\Support\Str;
 
 class BarangController extends Controller
 {
@@ -21,30 +23,35 @@ class BarangController extends Controller
         $kategoris = Kategori::all();
         $satuans = Satuan::all();
         $pajaks = Pajak::all();
-        return view('master_data.barang.index', compact('barang', 'kategoris', 'satuans', 'pajaks', 'breadcrumbs'));
+        $satuanKonversis = Satuan::where('status_satuan', 'konversi_satuan')->get();
+        return view('master_data.barang.index', compact('barang', 'kategoris', 'satuans', 'pajaks', 'breadcrumbs', 'satuanKonversis'));
     }
 
     public function store(Request $request)
     {
-
-        dd($request->all());
+        // Validasi input
         $request->validate([
-            'kategori_id' => 'required',
-            'kode' => 'required|unique:barangs',
-            'nama' => 'required',
-            'satuan_id' => 'required',
-            'harga_beli' => 'required',
-            'harga_pokok' => 'required',
-            'harga_jual' => 'required',
-            'diskon_value' => 'required',
-            'stok_minimum' => 'required',
-            'stok' => 'required',
-            'pajak_id' => 'required',
-            'status' => 'required',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'nama' => 'required|string|max:255',
+            'kode' => 'required|string|unique:barangs,kode',
+            'kategori_id' => 'required|uuid',
+            'status' => 'required|in:aktif,inaktif',
+            'harga_beli' => 'required|numeric',
+            'harga_pokok' => 'required|numeric',
+            'harga_jual' => 'required|numeric',
+            'pajak_id' => 'required|uuid',
+            'satuan_id' => 'required|uuid',
+            'diskon' => 'required|numeric',
+            'stok_minimal' => 'required|numeric',
+            'jumlah' => 'array',
+            'satuan_konversi_id' => 'array',
+            'nilai' => 'array',
+            'satuan_tujuan_id' => 'array',
+            'photo_file' => 'nullable|image|max:2048',
         ]);
 
+        // Simpan data barang
         $barang = new Barang();
+        $barang->id = Str::uuid();
         $barang->kategori_id = $request->kategori_id;
         $barang->kode = $request->kode;
         $barang->nama = $request->nama;
@@ -52,19 +59,32 @@ class BarangController extends Controller
         $barang->harga_beli = $request->harga_beli;
         $barang->harga_pokok = $request->harga_pokok;
         $barang->harga_jual = $request->harga_jual;
-        $barang->diskon_value = $request->diskon_value;
-        $barang->stok_minimum = $request->stok_minimum;
-        $barang->stok = $request->stok;
+        $barang->diskon_value = $request->diskon;
+        $barang->stok_minimum = $request->stok_minimal;
+        $barang->stok = 0; // Atau sesuai kebutuhan
         $barang->pajak_id = $request->pajak_id;
-        $barang->status = $request->status;
-        if ($request->hasFile('gambar')) {
-            $gambar = $request->file('gambar');
-            $gambar_name = time() . '.' . $gambar->getClientOriginalExtension();
-            $gambar->move(public_path('images'), $gambar_name);
-            $barang->gambar = $gambar_name;
+        $barang->status = $request->status === 'aktif' ? 'active' : 'inactive';
+
+        if ($request->hasFile('photo_file')) {
+            $path = $request->file('photo_file')->store('private_files', 'local');
+            $barang->gambar = $path;
         }
+
         $barang->save();
 
-        return redirect()->route('barang.index')->with('success', 'Barang berhasil ditambahkan');
+        // Simpan data konversi
+        if (!empty($request->satuan_konversi_id) && !empty($request->nilai) && !empty($request->satuan_tujuan_id)) {
+            foreach ($request->satuan_konversi_id as $index => $satuanKonversiId) {
+                $konversi = new Konversi();
+                $konversi->barang_id = $barang->id;
+                $konversi->satuan_id = $satuanKonversiId;
+                $konversi->nilai_konversi = $request->nilai[$index];
+                $konversi->satuan_tujuan_id = $request->satuan_tujuan_id[$index];
+                $konversi->save();
+            }
+        }
+
+        // Redirect kembali dengan pesan sukses
+        return redirect()->back()->with('success', 'Barang berhasil disimpan.');
     }
 }

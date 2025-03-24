@@ -21,8 +21,16 @@ class Konversi extends Model
         'satuan_tujuan_id',
 
     ];
+    public function barang()
+    {
+        return $this->belongsTo(Barang::class);
+    }
     public function satuan()
     {
         return $this->belongsTo(Satuan::class);
+    }
+    public function satuanTujuan()
+    {
+        return $this->belongsTo(Satuan::class, 'satuan_tujuan_id');
     }
 }

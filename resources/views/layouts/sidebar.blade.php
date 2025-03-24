@@ -3,6 +3,7 @@
     localStorage.setItem('theme', val ? 'dark' : 'light');
 })"
     class="bg-white border-b border-gray-100 dark:bg-gray-900 dark:border-gray-700">
+
     <div class="flex items-center justify-between h-16 px-4">
         <!-- Hamburger Menu Button -->
         <button @click="sidebarOpen = !sidebarOpen" type="button"
@@ -39,19 +40,22 @@
         </div>
     </div>
 
+    <!-- Overlay (klik di luar sidebar) -->
+    <div x-show="sidebarOpen" @click="sidebarOpen = false"
+        class="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300" x-transition.opacity x-cloak>
+    </div>
+
     <!-- Sidebar -->
-    <aside x-show="sidebarOpen" @click.away="sidebarOpen = false"
-        class="fixed top-0 left-0 w-72 h-screen bg-gray-50 dark:bg-gray-800 shadow-lg z-50"
+    <aside x-show="sidebarOpen" class="fixed top-0 left-0 w-72 h-screen bg-gray-50 dark:bg-gray-800 shadow-lg z-50"
         x-transition:enter="transition-transform duration-300" x-transition:enter-start="-translate-x-full"
-        x-transition:enter-end="translate-x-0" x-transition:leave="transition-transform duration-300"
+        x-transition:enter-end="translate-x-0" x-transition:leave="transition-transform duration-300" x-cloak
         x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full" x-cloak>
         <div class="p-4 flex justify-center items-center bg-gray-100 dark:bg-gray-900">
             <x-application-logo class="h-24 w-auto" />
         </div>
         <ul class="p-4 space-y-2">
             <li>
-                <a href="{{ route('dashboard') }}" wire:navigate
-                    class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                <a href="{{ route('dashboard') }}" class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
                     :class="{
                         'bg-gray-300 dark:bg-gray-600': '{{ Request::route()->getName() }}'
                         === 'dashboard'
@@ -69,18 +73,56 @@
                     Master Data
                 </a>
             </li>
-            <li><a href="#" class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                    wire:navigate>Pembelian</a></li>
-            <li><a href="#" class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                    wire:navigate>Barang Masuk</a></li>
-            <li><a href="#" class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                    wire:navigate>Riwayat Transaksi</a></li>
-            <li><a href="#" class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                    wire:navigate>Laporan Keuangan</a></li>
-            <li><a href="#" class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                    wire:navigate>Mode Kasir</a></li>
-            <li><a href="#" class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-                    wire:navigate>Setting</a></li>
+            <li>
+                <a href="{{ route('pembelian.index') }}" wire:navigate
+                    class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                    :class="{
+                        'bg-gray-300 dark:bg-gray-600': '{{ Request::route()->getName() }}'
+                        === 'pembelian.index'
+                    }">
+                    Pembelian
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('penjualan.index') }}" wire:navigate
+                    class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                    :class="{
+                        'bg-gray-300 dark:bg-gray-600': '{{ Request::route()->getName() }}'
+                        === 'penjualan.index'
+                    }">
+                    Penjualan
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('penjualan.index') }}" wire:navigate
+                    class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                    :class="{
+                        'bg-gray-300 dark:bg-gray-600': '{{ Request::route()->getName() }}'
+                        === 'penjualan.index'
+                    }">
+                    Inventori
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('penjualan.index') }}" wire:navigate
+                    class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                    :class="{
+                        'bg-gray-300 dark:bg-gray-600': '{{ Request::route()->getName() }}'
+                        === 'penjualan.index'
+                    }">
+                    Laporan
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('penjualan.index') }}" wire:navigate
+                    class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                    :class="{
+                        'bg-gray-300 dark:bg-gray-600': '{{ Request::route()->getName() }}'
+                        === 'penjualan.index'
+                    }">
+                    Pengaturan
+                </a>
+            </li>
         </ul>
         <div class="p-4 flex justify-between items-center bg-gray-100 dark:bg-gray-900">
             <div class="flex items-center space-x-3">

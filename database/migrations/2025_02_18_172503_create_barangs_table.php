@@ -25,7 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('stok');
             $table->foreignUuid('pajak_id')->constrained()->restrictOnDelete();
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $tbale->string('gambar')->nullable();
+            $table->string('gambar')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

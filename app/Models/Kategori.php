@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Kategori extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $primaryKey = 'id';
     public $incrementing = false;
@@ -18,6 +18,7 @@ class Kategori extends Model
     protected $fillable = [
         'kode',
         'nama',
+        'status'
     ];
 
     public function barang()

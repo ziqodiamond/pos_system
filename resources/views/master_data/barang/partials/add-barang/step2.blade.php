@@ -2,119 +2,109 @@
     <!-- Kolom Kiri (Harga) -->
     <div>
         <label for="harga_beli" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga Beli</label>
-        <input type="number" id="harga_beli" name="harga_beli"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            required />
+        <div class="relative">
+            <span class="absolute left-3 top-2.5">Rp</span>
+            <input type="text" id="display_harga_beli" x-data
+                x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');"
+                x-on:change="document.getElementById('harga_beli').value = $event.target.value.replace(/\./g, '')"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                min="0" required />
+        </div>
+        <input type="hidden" id="harga_beli" name="harga_beli">
 
-        <label for="harga_pokok" class="block mt-2 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
+        <label for="harga_pokok" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
             Pokok</label>
-        <input type="number" id="harga_pokok" name="harga_pokok"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            required />
+        <div class="relative">
+            <span class="absolute left-3 top-2.5">Rp</span>
+            <input type="text" id="display_harga_pokok" x-data
+                x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');"
+                x-on:change="document.getElementById('harga_pokok').value = $event.target.value.replace(/\./g, '')"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                min="0" required />
+        </div>
+        <input type="hidden" id="harga_pokok" name="harga_pokok">
 
-        <label for="harga_jual" class="block mt-2 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
+        <label for="harga_jual" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
             Jual</label>
-        <input type="number" id="harga_jual" name="harga_jual"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            required />
+        <div class="relative">
+            <span class="absolute left-3 top-2.5">Rp</span>
+            <input type="text" id="display_harga_jual" x-data
+                x-on:input="$el.value = $el.value.replace(/[^0-9]/g, '').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');"
+                x-on:change="document.getElementById('harga_jual').value = $event.target.value.replace(/\./g, '')"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                min="0" required />
+        </div>
+        <input type="hidden" id="harga_jual" name="harga_jual">
     </div>
 
     <!-- Kolom Kanan (Satuan, Pajak, Diskon, Stok) -->
-    <div>
+    <div class="space-y-4">
+        <div x-data="dropdown('pajak')">
+            <label for="pajak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pajak</label>
+            <div class="relative">
+                <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()" autocomplete="off"
+                    placeholder="Cari Pajak..."
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
 
-        <!-- Satuan -->
-        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Satuan
-            Dasar</label>
-        <div x-data="dropdownSearch(@json($satuans), 'satuan_id')" class="relative">
-            <input type="text" x-ref="inputSatuan" x-model="search" @focus="open = true" @input="checkValid()"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Cari Satuan..." />
 
-            <input type="hidden" name="satuan_id" x-model="selectedId" />
-
-            <div class="absolute right-2 top-2">
-                <a href="{{ route('satuan.index') }}" target="_blank" class="text-blue-500 text-lg font-bold">+</a>
+                <ul x-show="open" @click.outside="close()" x-cloak
+                    class="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto">
+                    <template x-for="pajak in filteredPajaks" :key="pajak.id">
+                        <li @click="select(pajak)" class="px-4 py-2 cursor-pointer hover:bg-gray-100">
+                            <span x-text="pajak.nama"></span>
+                        </li>
+                    </template>
+                    <!-- Kalau datanya kosong -->
+                    <li x-show="filteredPajaks.length === 0" class="px-2 py-1 text-gray-500 text-sm">
+                        Data tidak ditemukan
+                    </li>
+                </ul>
+                <input type="hidden" name="pajak_id" :value="selected.id">
             </div>
+        </div>
 
-            <div x-show="open"
-                class="absolute w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-md dark:bg-gray-700 dark:border-gray-600"
-                x-transition>
-                <ul class="max-h-48 overflow-y-auto">
-                    <template x-for="item in filteredOptions" :key="item.id">
-                        <li class="px-3 py-2 hover:bg-blue-500 hover:text-white cursor-pointer"
-                            @click="selectOption(item.id, item.nama)">
+        <div x-data="dropdown('satuan')">
+            <label for="pajak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pilih
+                Satuan</label>
+            <div class="relative">
+                <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()" autocomplete="off"
+                    placeholder="Cari Satuan..."
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+
+
+                <!-- List Dropdown -->
+                <ul x-show="open" @click.outside="close()" x-cloak
+                    class="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto">
+                    <template x-for="item in filteredSatuans" :key="item.id">
+                        <li @click="select(item)" class="cursor-pointer px-2 py-1 hover:bg-gray-100">
                             <span x-text="item.nama"></span>
                         </li>
                     </template>
+                    <!-- Kalau datanya kosong -->
+                    <li x-show="filteredSatuans.length === 0" class="px-2 py-1 text-gray-500 text-sm">
+                        Data tidak ditemukan
+                    </li>
                 </ul>
-            </div>
-
-            <p x-show="!valid && search !== ''" class="text-red-500 text-sm mt-1">Satuan tidak
-                valid!</p>
-        </div>
-
-        <!-- Pajak -->
-        <label class="block mt-2 mb-2 text-sm font-medium text-gray-900 dark:text-white">Pajak</label>
-        <div class="relative">
-            <select name="pajak_id"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                <option value="">Pilih Pajak</option>
-                @foreach ($pajaks as $pajak)
-                    <option value="{{ $pajak->id }}">{{ $pajak->nama }}</option>
-                @endforeach
-            </select>
-
-            <div class="absolute right-2 top-2">
-                <a href="{{ route('pajak.index') }}" target="_blank" class="text-blue-500 text-lg font-bold">+</a>
+                <input type="hidden" name="satuan_id" :value="selected.id">
             </div>
         </div>
 
-        <!-- Alpine.js untuk Dropdown Pencarian -->
-        <script>
-            function dropdownSearch(options, modelName) {
-                return {
-                    search: '',
-                    open: false,
-                    selectedId: null,
-                    valid: false,
-                    filteredOptions: options,
 
-                    checkValid() {
-                        let inputValue = this.search.trim();
-                        let foundItem = options.find(option => option.nama.toLowerCase() === inputValue.toLowerCase());
+        <div>
+            <label for="diskon" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
+                (%)</label>
+            <input type="number" id="diskon" name="diskon" min="0" max="100"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required />
+        </div>
 
-                        if (foundItem) {
-                            this.valid = true;
-                            this.selectedId = foundItem.id;
-                        } else {
-                            this.valid = false;
-                            this.selectedId = null;
-                        }
-                    },
-
-                    selectOption(id, nama) {
-                        this.search = nama;
-                        this.selectedId = id;
-                        this.valid = true;
-                        this.open = false;
-                    }
-                };
-            }
-        </script>
-
-
-        <label for="diskon" class="block mt-2 mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
-            (%)</label>
-        <input type="number" id="diskon" name="diskon"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            required />
-
-        <label for="stok_minimal" class="block mt-2 mb-2 text-sm font-medium text-gray-900 dark:text-white">Stok
-            Minimal</label>
-        <input type="number" id="stok_minimal" name="stok_minimal"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            required />
+        <div>
+            <label for="stok_minimal" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Stok
+                Minimal</label>
+            <input type="number" id="stok_minimal" name="stok_minimal" min="0"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required />
+        </div>
     </div>
-
 
 </div>

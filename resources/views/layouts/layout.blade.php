@@ -41,9 +41,7 @@
 
 
         <!-- Notification Alert -->
-        @if ($errors->any() || session()->has('success') || session()->has('warning'))
-
-
+        @if ($errors->any() || session()->has('success') || session()->has('warning') || session()->has('info'))
             <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="fixed top-4 right-4 z-50">
                 <!-- Error Handling -->
                 @if ($errors->any())
@@ -111,8 +109,30 @@
                         </div>
                     </div>
                 @endif
+
+                <!-- Info Message -->
+                @if (session()->has('info'))
+                    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-lg mb-2">
+                        <div class="flex items-center">
+                            <div class="py-1">
+                                <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m0-4h.01M12 8v.01"></path>
+                                </svg>
+                            </div>
+                            <div>{{ session('info') }}</div>
+                            <button @click="show = false" class="ml-4">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @endif
             </div>
         @endif
+
 
 
 

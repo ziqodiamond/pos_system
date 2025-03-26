@@ -25,8 +25,8 @@ class PajakController extends Controller
         }
 
         // Filter status
-        if ($request->has('status') && in_array($request->status, ['aktif', 'nonaktif'])) {
-            $query->where('status', $request->status);
+        if ($request->has('Status') && in_array($request->Status, ['active', 'inactive'])) {
+            $query->where('status', $request->Status);
         }
 
         // Sortir dengan default 'terbaru'
@@ -55,19 +55,23 @@ class PajakController extends Controller
         $request->validate([
             'kode' => 'required|unique:pajaks',
             'nama' => 'required',
-            'persen' => 'required',
+            'persen' => 'required|numeric',
         ]);
 
-        $pajak = new Pajak();
-        $pajak->kode = $request->kode;
-        $pajak->nama = $request->nama;
-        $pajak->persen = $request->persen;
-        // Jika checkbox tidak dicentang, maka status tidak ada di request sehingga dianggap 'nonaktif'
-        $pajak->status = $request->has('status') ? 'active' : 'inactive';
-        $pajak->save();
+        try {
+            $pajak = new Pajak();
+            $pajak->kode = $request->kode;
+            $pajak->nama = $request->nama;
+            $pajak->persen = $request->persen;
+            $pajak->status = $request->has('status') ? 'active' : 'inactive';
+            $pajak->save();
 
-        return redirect()->back()->with('success', 'Pajak berhasil ditambahkan');
+            return redirect()->back()->with('success', 'Pajak berhasil ditambahkan');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menambahkan pajak: ' . $e->getMessage());
+        }
     }
+
 
     public function update(Request $request, $id)
     {
@@ -75,18 +79,34 @@ class PajakController extends Controller
             'kode' => 'required|unique:pajaks,kode,' . $id,
             'nama' => 'required',
             'keterangan' => 'nullable|string',
-            'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        $pajak = Pajak::findOrFail($id);
-        $pajak->kode = $request->kode;
-        $pajak->nama = $request->nama;
-        $pajak->keterangan = $request->keterangan;
-        $pajak->status = $request->status;
-        $pajak->save();
+        try {
+            $pajak = Pajak::findOrFail($id);
 
-        return redirect()->back()->with('success', 'Pajak berhasil diperbarui');
+            // Isi data baru ke model langsung
+            $pajak->fill([
+                'kode' => $request->kode,
+                'nama' => $request->nama,
+                'keterangan' => $request->keterangan,
+                'status' => $request->has('status') ? 'active' : 'inactive',
+            ]);
+
+            // Cek apakah ada perubahan
+            if ($pajak->isDirty()) {
+                $pajak->save();
+                return redirect()->back()->with('success', 'Pajak berhasil diperbarui');
+            }
+
+            return redirect()->back()->with('info', 'Tidak ada perubahan pada data pajak');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', 'Data pajak tidak ditemukan');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
+
+
 
     public function destroy($id)
     {

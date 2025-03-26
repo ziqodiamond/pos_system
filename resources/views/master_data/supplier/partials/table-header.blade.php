@@ -154,16 +154,14 @@
 
             // Panggil fungsi pas filter berubah
             document.querySelectorAll('.filter-input').forEach(input => {
-                let lastChecked = null;
-
                 input.addEventListener('click', function() {
-                    // Kalau klik ulang filter yang sama, unselect (jadi unchecked)
-                    if (lastChecked === this) {
-                        this.checked = false;
-                        lastChecked = null;
-                    } else {
-                        lastChecked = this;
-                    }
+                    const allInputs = document.querySelectorAll('.filter-input');
+
+                    // Uncheck semua input kecuali yang diklik
+                    allInputs.forEach(i => i.checked = false);
+
+                    // Toggle hanya yang diklik (kalau sebelumnya unchecked, jadi checked)
+                    this.checked = !this.checked;
 
                     handleStatusFilterChange(); // Panggil ulang biar tombol update
                 });

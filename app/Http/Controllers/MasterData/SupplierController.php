@@ -16,6 +16,11 @@ class SupplierController extends Controller
         // Query dasar supplier
         $query = Supplier::query();
 
+        // Cek apakah ingin menampilkan data yang sudah di-soft delete
+        if ($request->has('Status') && $request->Status === 'deleted') {
+            $query->onlyTrashed(); // Menampilkan data yang sudah di-soft delete
+        }
+
         // Search
         if ($request->has('search') && $request->search != '') {
             $query->where(function ($q) use ($request) {
@@ -25,8 +30,8 @@ class SupplierController extends Controller
         }
 
         // Filter status
-        if ($request->has('Status') && in_array($request->status, ['aktif', 'nonaktif'])) {
-            $query->where('status', $request->status);
+        if ($request->has('Status') && in_array($request->Status, ['active', 'inactive'])) {
+            $query->where('status', $request->Status);
         }
 
         // Sortir dengan default 'terbaru'
@@ -86,66 +91,117 @@ class SupplierController extends Controller
             'kontak' => 'required',
             'email' => 'required|email',
             'catatan' => 'nullable|string',
-            'status' => 'required|in:aktif,nonaktif',
         ]);
 
         $supplier = Supplier::findOrFail($id);
-        $supplier->kode = $request->kode;
-        $supplier->nama = $request->nama;
-        $supplier->alamat = $request->alamat;
-        $supplier->kota = $request->kota;
-        $supplier->kontak = $request->kontak;
-        $supplier->email = $request->email;
-        $supplier->catatan = $request->catatan;
-        $supplier->status = $request->status;
-        $supplier->save();
 
-        return redirect()->back()->with('success', 'Supplier berhasil diperbarui');
+        // Cek perubahan data
+        $dataToUpdate = [];
+        $fields = ['kode', 'nama', 'alamat', 'kota', 'kontak', 'email', 'catatan'];
+
+        foreach ($fields as $field) {
+            if ($request->$field !== $supplier->$field) {
+                $dataToUpdate[$field] = $request->$field;
+            }
+        }
+
+        // Cek status apakah berubah
+        $newStatus = $request->has('status') ? 'active' : 'inactive';
+        if ($newStatus !== $supplier->status) {
+            $dataToUpdate['status'] = $newStatus;
+        }
+
+        // Kalau ada yang berubah, simpan
+        if (!empty($dataToUpdate)) {
+            $supplier->update($dataToUpdate);
+            return redirect()->back()->with('success', 'Supplier berhasil diperbarui');
+        }
+
+        return redirect()->back()->with('info', 'Tidak ada perubahan data');
     }
 
     public function destroy($id)
     {
-        try {
-            $supplier = Supplier::findOrFail($id);
-            $supplier->delete();
+        $supplier = Supplier::findOrFail($id);
 
-            return redirect()->back()->with('success', 'Supplier berhasil dihapus');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
+        $supplier->delete(); // Soft Delete
+        return redirect()->back()->with('success', 'Supplier berhasil dihapus sementara');
+    }
+
+    public function restore($id)
+    {
+        $supplier = Supplier::withTrashed()->findOrFail($id);
+
+        $supplier->restore(); // Restore data yang terhapus
+        return redirect()->back()->with('success', 'Supplier berhasil dipulihkan');
+    }
+
+    public function forceDelete($id)
+    {
+        $supplier = Supplier::withTrashed()->findOrFail($id);
+
+        $supplier->forceDelete(); // Hapus permanen
+        return redirect()->back()->with('success', 'Supplier berhasil dihapus permanen');
     }
 
     public function bulkAction(Request $request)
     {
         $request->validate([
-            'action' => 'required|in:edit,delete',
-            'selected' => 'required|array',
-            'selected.*' => 'uuid', // Validasi semua id harus UUID
+            'action' => 'required|in:edit,delete,restore,forceDelete',
+            'selected' => 'required|string',
+            'status' => 'nullable|in:aktif,nonaktif'
+        ], [
+            'action.required' => 'Aksi wajib dipilih!',
+            'action.in' => 'Aksi yang dipilih tidak valid!',
+            'selected.required' => 'Tidak ada data yang dipilih!',
+            'selected.string' => 'Format data tidak valid',
+            'status.in' => 'Status harus berupa "aktif" atau "nonaktif"!'
         ]);
 
         $action = $request->input('action');
-        $selectedIds = $request->input('selected');
+        $selectedString = $request->input('selected');
+        $newStatus = $request->input('status');
 
-        // Cek dulu kalau gak ada data yang dipilih
-        if (!$selectedIds || count($selectedIds) == 0) {
+        if (empty($request->input('selected'))) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
+        }
+
+        $selectedIds = array_filter(array_map('trim', explode(',', $selectedString)));
+
+        foreach ($selectedIds as $id) {
+            if (!preg_match('/^[a-f0-9\-]{36}$/', $id)) {
+                return redirect()->back()->with('error', 'ID tidak valid!');
+            }
+        }
+
+        if (empty($selectedIds)) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
         }
 
         try {
-            // Aksi massal: Ubah status jadi "Aktif"
-            if ($action === 'edit') {
-                Supplier::whereIn('id', $selectedIds)->update(['status' => 'aktif']);
-                return redirect()->back()->with('success', 'Status berhasil diubah!');
-            }
+            switch ($action) {
+                case 'edit':
+                    if ($newStatus) {
+                        Supplier::whereIn('id', $selectedIds)->update(['status' => $newStatus]);
+                        return redirect()->back()->with('success', 'Status berhasil diubah!');
+                    }
+                    return redirect()->back()->with('error', 'Status baru harus dipilih!');
 
-            // Aksi massal: Hapus data
-            if ($action === 'delete') {
-                Supplier::whereIn('id', $selectedIds)->delete();
-                return redirect()->back()->with('success', 'Data berhasil dihapus!');
-            }
+                case 'delete':
+                    Supplier::whereIn('id', $selectedIds)->delete();
+                    return redirect()->back()->with('success', 'Data berhasil dihapus!');
 
-            // Kalau action gak dikenali
-            return redirect()->back()->with('error', 'Aksi tidak valid!');
+                case 'restore':
+                    Supplier::withTrashed()->whereIn('id', $selectedIds)->restore();
+                    return redirect()->back()->with('success', 'Data berhasil direstore!');
+
+                case 'forceDelete':
+                    Supplier::withTrashed()->whereIn('id', $selectedIds)->forceDelete();
+                    return redirect()->back()->with('success', 'Data berhasil dihapus permanen!');
+
+                default:
+                    return redirect()->back()->with('error', 'Aksi tidak valid!');
+            }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

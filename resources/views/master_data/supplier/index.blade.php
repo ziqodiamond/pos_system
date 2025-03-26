@@ -30,14 +30,31 @@
     </div>
 
     <script>
-        const reportSearchRoute = @json(route('satuan.index'));
+        const reportSearchRoute = @json(route('supplier.index'));
 
         document.addEventListener('DOMContentLoaded', () => {
+            let lastSelectedFilter = {}; // Menyimpan state terakhir tiap grup filter
+
             // Setup event listeners
             document.getElementById('search').addEventListener('input', handleSearchAndFilter);
             document.querySelectorAll('.filter-input').forEach(input => {
-                input.addEventListener('change', handleSearchAndFilter);
+                input.addEventListener('click', handleUnselect);
             });
+
+            function handleUnselect(event) {
+                const input = event.target;
+                const groupName = input.name;
+
+                // Kalau klik filter yang sama, unselect
+                if (lastSelectedFilter[groupName] === input) {
+                    input.checked = false;
+                    lastSelectedFilter[groupName] = null;
+                } else {
+                    lastSelectedFilter[groupName] = input;
+                }
+
+                handleSearchAndFilter();
+            }
 
             function handleSearchAndFilter() {
                 const selectedFilters = {};
@@ -66,9 +83,51 @@
                     })
                     .then(data => {
                         document.getElementById('table-container').innerHTML = data.html;
+
+                        // ✅ Re-bind event setelah fetch selesai
+                        rebindCheckboxEvents();
                     })
                     .catch(error => console.error('Error fetching filter results:', error));
             }
+
+            // 💪 Fungsi buat pasang ulang event checkbox setelah data ke-fetch
+            function rebindCheckboxEvents() {
+                const selectAllCheckbox = document.getElementById('checkbox-all');
+                const checkboxes = document.querySelectorAll('.item-checkbox');
+                const selectedIdsInput = document.getElementById('selectedIds');
+
+                // Select All Checkbox Event
+                selectAllCheckbox.addEventListener('change', () => {
+                    checkboxes.forEach((checkbox) => (checkbox.checked = selectAllCheckbox.checked));
+                    updateSelectedIds();
+                });
+
+                // Event checkbox individual
+                checkboxes.forEach((checkbox) => {
+                    checkbox.addEventListener('change', () => {
+                        selectAllCheckbox.checked = [...checkboxes].every(cb => cb.checked);
+                        updateSelectedIds();
+                    });
+                });
+
+                // Fungsi update selected IDs
+                function updateSelectedIds() {
+                    const selectedIds = Array.from(checkboxes)
+                        .filter((checkbox) => checkbox.checked)
+                        .map((checkbox) => checkbox.value);
+
+                    selectedIdsInput.value = selectedIds.join(',');
+
+                    // Cek ulang Select All (kalau semua ke-check, otomatis aktif)
+                    selectAllCheckbox.checked = checkboxes.length === selectedIds.length;
+                }
+
+                // Pastikan ulang selected IDs tetap tersimpan
+                updateSelectedIds();
+            }
+
+            // 🔥 Panggil rebind pertama kali (buat table awal sebelum fetch)
+            rebindCheckboxEvents();
         });
     </script>
 

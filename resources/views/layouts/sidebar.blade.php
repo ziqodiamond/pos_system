@@ -27,7 +27,7 @@
         <div class="flex items-center space-x-4">
             <button @click="darkMode = !darkMode"
                 class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 transition-transform duration-300 ease-in-out">
-                <span x-text="darkMode ? '☀️' : '🌙'"></span>
+                <span x-text="darkMode ? '☀️' : '🌙'">🌙</span>
             </button>
             <button type="button" class="relative text-gray-500 hover:text-gray-700 focus:outline-none">
                 <span class="sr-only">View notifications</span>

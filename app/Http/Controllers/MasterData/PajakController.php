@@ -124,33 +124,52 @@ class PajakController extends Controller
     {
         $request->validate([
             'action' => 'required|in:edit,delete',
-            'selected' => 'required|array',
-            'selected.*' => 'uuid', // Validasi semua id harus UUID
+            'selected' => 'required|string',
+            'status' => 'nullable|in:aktif,nonaktif'
+        ], [
+            'action.required' => 'Aksi wajib dipilih!',
+            'action.in' => 'Aksi yang dipilih tidak valid!',
+            'selected.required' => 'Tidak ada data yang dipilih!',
+            'selected.string' => 'Format data tidak valid',
+            'status.in' => 'Status harus berupa "aktif" atau "nonaktif"!'
         ]);
 
         $action = $request->input('action');
-        $selectedIds = $request->input('selected');
+        $selectedString = $request->input('selected');
+        $newStatus = $request->input('status');
 
-        // Cek dulu kalau gak ada data yang dipilih
-        if (!$selectedIds || count($selectedIds) == 0) {
+        if (empty($request->input('selected'))) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
+        }
+
+        $selectedIds = array_filter(array_map('trim', explode(',', $selectedString)));
+
+        foreach ($selectedIds as $id) {
+            if (!preg_match('/^[a-f0-9\-]{36}$/', $id)) {
+                return redirect()->back()->with('error', 'ID tidak valid!');
+            }
+        }
+
+        if (empty($selectedIds)) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
         }
 
         try {
-            // Aksi massal: Ubah status jadi "Aktif"
-            if ($action === 'edit') {
-                Pajak::whereIn('id', $selectedIds)->update(['status' => 'aktif']);
-                return redirect()->back()->with('success', 'Status berhasil diubah!');
-            }
+            switch ($action) {
+                case 'edit':
+                    if ($newStatus) {
+                        Pajak::whereIn('id', $selectedIds)->update(['status' => $newStatus]);
+                        return redirect()->back()->with('success', 'Status berhasil diubah!');
+                    }
+                    return redirect()->back()->with('error', 'Status baru harus dipilih!');
 
-            // Aksi massal: Hapus data
-            if ($action === 'delete') {
-                Pajak::whereIn('id', $selectedIds)->delete();
-                return redirect()->back()->with('success', 'Data berhasil dihapus!');
-            }
+                case 'delete':
+                    Pajak::whereIn('id', $selectedIds)->delete();
+                    return redirect()->back()->with('success', 'Data berhasil dihapus!');
 
-            // Kalau action gak dikenali
-            return redirect()->back()->with('error', 'Aksi tidak valid!');
+                default:
+                    return redirect()->back()->with('error', 'Aksi tidak valid!');
+            }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

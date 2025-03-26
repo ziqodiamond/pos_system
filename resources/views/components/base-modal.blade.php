@@ -6,7 +6,7 @@
     'triggerClass' => 'text-blue-600 hover:underline',
 ])
 
-<div x-data="{ openModal: null }">
+<div x-data="{ openModal: null, step: 1 }" x-cloak>
     <!-- Tombol Trigger Modal dengan teks dan style yang bisa diubah -->
     <button type="button" x-on:click="openModal = '{{ $id }}'" class="{{ $triggerClass }}">
         {{ $triggerText }}
@@ -38,7 +38,7 @@
                 </div>
 
                 <!-- Isi Modal -->
-                <div class="p-6 space-y-6">
+                <div class="px-6 py-6 space-y-2">
                     {{ $slot }}
                 </div>
             </div>

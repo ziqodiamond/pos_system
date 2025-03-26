@@ -75,11 +75,29 @@
                         },
 
                         init() {
-                            this.selected = (this.kategoris || this.pajaks || this.satuans || this.satuanKonversis || this
-                                .filteredSatuanTujuans).find(item =>
-                                item.id ===
-                                {{ old('kategori_id') ?? 'null' }}) || {};
+                            if (type === 'kategori') {
+                                const id = {{ old('kategori_id', $item->kategori_id ?? 'null') }};
+                                this.selected = this.kategoris.find(kategori => kategori.id === id) || {};
+                                this.search = this.selected.nama || '';
+                            } else if (type === 'pajak') {
+                                const id = {{ old('pajak_id', $item->pajak_id ?? 'null') }};
+                                this.selected = this.pajaks.find(pajak => pajak.id === id) || {};
+                                this.search = this.selected.nama || '';
+                            } else if (type === 'satuan') {
+                                const id = {{ old('satuan_id', $item->satuan_id ?? 'null') }};
+                                this.selected = this.satuans.find(satuan => satuan.id === id) || {};
+                                this.search = this.selected.nama || '';
+                            } else if (type === 'satuanKonversi') {
+                                const id = {{ old('satuan_konversi_id', $item->satuan_konversi_id ?? 'null') }};
+                                this.selected = this.satuanKonversis.find(satuanKonversi => satuanKonversi.id === id) || {};
+                                this.search = this.selected.nama || '';
+                            } else if (type === 'satuanTujuan') {
+                                const id = {{ old('satuan_tujuan_id', $item->satuan_tujuan_id ?? 'null') }};
+                                this.selected = this.satuanTujuans.find(satuanTujuan => satuanTujuan.id === id) || {};
+                                this.search = this.selected.nama || '';
+                            }
                         },
+
                         select(item) {
                             this.selected = item;
                             this.search = item.nama;

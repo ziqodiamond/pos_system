@@ -78,13 +78,25 @@
                 <td class="px-6 py-4">
                     {{ $item->stok }}
                 </td>
-                <td class="flex items-center px-6 py-4">
-                    <a href="#" data-modal-target="modal-edit-{{ $item->id }}"
-                        data-modal-toggle="modal-edit-{{ $item->id }}"
-                        class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
-                    <a href="#" data-modal-target="modal-delete-{{ $item->id }}"
-                        data-modal-toggle="modal-delete-{{ $item->id }}"
-                        class="font-medium text-red-600 dark:text-red-500 hover:underline ms-3">Remove</a>
+                <td class="flex items-center px-6 py-4 space-x-2">
+                    {{-- Edit Modal --}}
+                    @include('master_data.barang.partials.edit-barang')
+
+                    {{-- Delete Modal --}}
+                    <x-base-modal :id="'deleteModal-' . $item->id" title="Delete Supplier" triggerText="Delete"
+                        triggerClass="font-medium text-red-600 dark:text-red-500 hover:underline">
+                        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                            Are you sure you want to delete this supplier?
+                        </p>
+                        <form class="space-y-6" action="{{ route('supplier.destroy', $item->id) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+
+                            <button
+                                class="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+                                Delete</button>
+                        </form>
+                    </x-base-modal>
                 </td>
 
 
@@ -99,44 +111,3 @@
     </tbody>
 </table>
 {{ $barang->links() }}
-
-@foreach ($barang as $item)
-    <!-- Modal Edit -->
-    <x-base-modal :id="'edit-' . $item->id" title="Edit Barang">
-        <form action="{{ route('barang.update', $item->id) }}" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="mb-4">
-                <label for="nama" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama
-                    Barang</label>
-                <input type="text" id="nama" name="nama" value="{{ $item->nama }}"
-                    class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-            </div>
-            <div class="mb-4">
-                <label for="harga" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
-                    Jual</label>
-                <input type="number" id="harga" name="harga_jual" value="{{ $item->harga_jual }}"
-                    class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-            </div>
-            <div class="flex justify-end gap-2">
-                <button type="button" data-modal-hide="modal-edit-{{ $item->id }}"
-                    class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save</button>
-            </div>
-        </form>
-    </x-base-modal>
-
-    <!-- Modal Delete -->
-    <x-base-modal :id="'delete-' . $item->id" title="Delete Barang">
-        <p class="text-gray-700 dark:text-gray-300">Yakin ingin menghapus <strong>{{ $item->nama }}</strong>?</p>
-        <div class="flex justify-end gap-2 mt-4">
-            <button type="button" data-modal-hide="modal-delete-{{ $item->id }}"
-                class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded">Cancel</button>
-            <form action="{{ route('barang.destroy', $item->id) }}" method="POST">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">Delete</button>
-            </form>
-        </div>
-    </x-base-modal>
-@endforeach

@@ -45,27 +45,134 @@
                 </svg>
                 Aksi
             </button>
-            <div id="actionsDropdown"
+            <div id="actionsDropdown" x-data="{ showModal: false, actionType: '', confirmMessage: '', selectedStatus: '' }"
                 class="z-10 hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
                 <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="actionsDropdownButton">
-                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <button type="button" id="massEditButton"
-                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                    <!-- Tombol default -->
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600" id="editAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='edit'; confirmMessage='Edit massal kategori terpilih?'"
+                            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
                             Edit
                         </button>
                     </li>
-                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <button type="button" id="massDeleteButton"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600" id="deleteAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='delete'; confirmMessage='Yakin ingin menghapus kategori terpilih?'"
+                            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
                             Hapus
                         </button>
                     </li>
+
+                    <!-- Tombol tambahan jika status 'Dihapus' -->
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600 hidden" id="restoreAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='restore'; confirmMessage='Yakin ingin merestore kategori terpilih?'"
+                            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            Restore
+                        </button>
+                    </li>
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600 hidden" id="forceDeleteAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='forceDelete'; confirmMessage='Yakin ingin menghapus permanen kategori terpilih?'"
+                            class="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-red-400">
+                            Hapus Permanen
+                        </button>
+                    </li>
                 </ul>
+
+
+                <!-- Modal Konfirmasi dalam Dropdown -->
+                <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+                    x-cloak>
+                    <div class="bg-white p-6 rounded-lg shadow-lg dark:bg-gray-700">
+                        <h2 class="text-lg font-semibold mb-4" x-text="confirmMessage"></h2>
+                        <form action="{{ route('kategori.bulkAction') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="action" :value="actionType">
+                            <input type="hidden" name="selected" id="selectedIds" value="">
+
+                            <!-- Jika Edit, Tampilkan Status -->
+                            <template x-if="actionType === 'edit'">
+                                <div class="mb-4">
+                                    <label for="status"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pilih
+                                        Status:</label>
+                                    <select id="status" name="status" x-model="selectedStatus"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-600 dark:text-white">
+                                        <option value="aktif">Aktif</option>
+                                        <option value="nonaktif">Nonaktif</option>
+                                    </select>
+                                </div>
+                            </template>
+
+                            <!-- Tombol Konfirmasi -->
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded mb-2">
+                                Ya
+                            </button>
+                            <button type="button" @click="showModal=false"
+                                class="w-full bg-gray-300 hover:bg-gray-400 text-black font-semibold py-2 rounded">
+                                Batal
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
             </div>
+
+
             <x-master-filter :filterGroups="[
                 'Urutkan' => [['kode' => 'terbaru', 'nama' => 'Terbaru'], ['kode' => 'terlama', 'nama' => 'Terlama']],
-                'Status' => [['kode' => 'aktif', 'nama' => 'Aktif'], ['kode' => 'nonaktif', 'nama' => 'Nonaktif']],
+                'Status' => [
+                    ['kode' => 'aktif', 'nama' => 'Aktif'],
+                    ['kode' => 'nonaktif', 'nama' => 'Nonaktif'],
+                    ['kode' => 'deleted', 'nama' => 'Dihapus'],
+                ],
             ]" />
+
+            <script>
+                function handleStatusFilterChange() {
+                    const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
+
+                    const editAction = document.getElementById('editAction');
+                    const deleteAction = document.getElementById('deleteAction');
+                    const restoreAction = document.getElementById('restoreAction');
+                    const forceDeleteAction = document.getElementById('forceDeleteAction');
+
+                    if (selectedStatus === 'deleted') {
+                        editAction.classList.add('hidden');
+                        deleteAction.classList.add('hidden');
+                        restoreAction.classList.remove('hidden');
+                        forceDeleteAction.classList.remove('hidden');
+                    } else {
+                        editAction.classList.remove('hidden');
+                        deleteAction.classList.remove('hidden');
+                        restoreAction.classList.add('hidden');
+                        forceDeleteAction.classList.add('hidden');
+                    }
+                }
+
+                // Panggil fungsi pas filter berubah
+                document.querySelectorAll('.filter-input').forEach(input => {
+                    let lastChecked = null;
+
+                    input.addEventListener('click', function() {
+                        // Kalau klik ulang filter yang sama, unselect (jadi unchecked)
+                        if (lastChecked === this) {
+                            this.checked = false;
+                            lastChecked = null;
+                        } else {
+                            lastChecked = this;
+                        }
+
+                        handleStatusFilterChange(); // Panggil ulang biar tombol update
+                    });
+                });
+
+                // Panggil juga saat pertama load
+                handleStatusFilterChange();
+            </script>
         </div>
     </div>
 </div>

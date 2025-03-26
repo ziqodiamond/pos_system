@@ -43,6 +43,8 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::post('/', [BarangController::class, 'store'])->name('barang.store');
             Route::post('/{id}', [BarangController::class, 'update'])->name('barang.update');
             Route::delete('/{id}', [BarangController::class, 'destroy'])->name('barang.destroy');
+            Route::patch('/{id}/restore', [BarangController::class, 'restore'])->name('barang.restore');
+            Route::delete('/{id}/force-delete', [BarangController::class, 'forceDelete'])->name('barang.forceDelete');
             Route::post('/bulk-action', [BarangController::class, 'bulkAction'])->name('barang.bulkAction');
         });
 
@@ -51,6 +53,8 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::post('/', [SupplierController::class, 'store'])->name('supplier.store');
             Route::post('/{id}', [SupplierController::class, 'update'])->name('supplier.update');
             Route::delete('/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+            Route::patch('/{id}/restore', [SupplierController::class, 'restore'])->name('supplier.restore');
+            Route::delete('/{id}/force-delete', [SupplierController::class, 'forceDelete'])->name('supplier.forceDelete');
             Route::post('/bulk-action', [SupplierController::class, 'bulkAction'])->name('supplier.bulkAction');
         });
 
@@ -59,6 +63,8 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::post('/', [CustomerController::class, 'store'])->name('customer.store');
             Route::post('/{id}', [CustomerController::class, 'update'])->name('customer.update');
             Route::delete('/{id}', [CustomerController::class, 'destroy'])->name('customer.destroy');
+            Route::patch('/{id}/restore', [CustomerController::class, 'restore'])->name('customer.restore');
+            Route::delete('/{id}/force-delete', [CustomerController::class, 'forceDelete'])->name('customer.forceDelete');
             Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('customer.bulkAction');
         });
 
@@ -67,6 +73,8 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::post('/', [KategoriController::class, 'store'])->name('kategori.store');
             Route::put('/{id}', [KategoriController::class, 'update'])->name('kategori.update');
             Route::delete('/{id}', [KategoriController::class, 'destroy'])->name('kategori.destroy');
+            Route::patch('/{id}/restore', [KategoriController::class, 'restore'])->name('kategori.restore');
+            Route::delete('/{id}/force-delete', [KategoriController::class, 'forceDelete'])->name('kategori.forceDelete');
             Route::post('/bulk-action', [KategoriController::class, 'bulkAction'])->name('kategori.bulkAction');
         });
 
@@ -75,6 +83,8 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::post('/', [PajakController::class, 'store'])->name('pajak.store');
             Route::post('/{id}', [PajakController::class, 'update'])->name('pajak.update');
             Route::delete('/{id}', [PajakController::class, 'destroy'])->name('pajak.destroy');
+            Route::patch('/{id}/restore', [PajakController::class, 'restore'])->name('pajak.restore');
+            Route::delete('/{id}/force-delete', [PajakController::class, 'forceDelete'])->name('pajak.forceDelete');
             Route::post('/bulk-action', [PajakController::class, 'bulkAction'])->name('pajak.bulkAction');
         });
 

@@ -14,7 +14,7 @@
         <div class="overflow-x-auto">
 
             <!-- table header here -->
-            <div class="relative bg-white  dark:bg-gray-800 sm:rounded-lg">
+            <div id="table-header" class="relative bg-white  dark:bg-gray-800 sm:rounded-lg">
                 @include('master_data.kategori.partials.table-header')
             </div>
 
@@ -23,11 +23,64 @@
             <div id="table-container" class="overflow-x-auto shadow-md sm:rounded-lg mt-2">
                 @include('master_data.kategori.partials.table')
             </div>
+            {{-- <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const checkboxes = document.querySelectorAll('.item-checkbox');
+                    const selectAllCheckbox = document.getElementById('checkbox-all');
+                    const selectedIdsInput = document.getElementById('selectedIds');
 
+                    // Dropdown action buttons
+                    const bulkActions = document.querySelectorAll('#actionsDropdown button');
+                    const formAction = document.querySelector('#actionsDropdown form');
 
-            {{-- Edit modal --}}
-            @foreach ($kategori as $item)
-            @endforeach
+                    // === Select All Checkbox Event ===
+                    selectAllCheckbox.addEventListener('change', () => {
+                        checkboxes.forEach((checkbox) => (checkbox.checked = selectAllCheckbox.checked));
+                        updateSelectedIds();
+                    });
+
+                    // === Individual Checkbox Change Event ===
+                    checkboxes.forEach((checkbox) => {
+                        checkbox.addEventListener('change', () => {
+                            selectAllCheckbox.checked = [...checkboxes].every(cb => cb.checked);
+                            updateSelectedIds();
+                        });
+                    });
+
+                    // === Fungsi Update Selected IDs ===
+                    function updateSelectedIds() {
+                        const selectedIds = Array.from(checkboxes)
+                            .filter((checkbox) => checkbox.checked)
+                            .map((checkbox) => checkbox.value);
+
+                        selectedIdsInput.value = selectedIds.join(',');
+
+                        // Cek ulang Select All (kalau semua ke-check, otomatis aktif)
+                        selectAllCheckbox.checked = checkboxes.length === selectedIds.length;
+                    }
+
+                    // === Handle Dropdown Actions ===
+                    bulkActions.forEach((actionButton) => {
+                        actionButton.addEventListener('click', () => {
+                            const selectedIds = selectedIdsInput.value.split(',');
+
+                            if (selectedIds.length === 0 || selectedIds[0] === "") {
+                                alert('Pilih minimal satu data dulu!');
+                                return;
+                            }
+
+                            // Update form action sesuai tombol yang diklik
+                            const actionType = actionButton.getAttribute('data-action');
+                            formAction.action = `/kategori/bulkAction/${actionType}`;
+                            formAction.submit();
+                        });
+                    });
+
+                    // === Ensure selected IDs on page reload ===
+                    updateSelectedIds();
+                });
+            </script> --}}
+
 
 
         </div>
@@ -39,11 +92,28 @@
         const reportSearchRoute = @json(route('kategori.index'));
 
         document.addEventListener('DOMContentLoaded', () => {
+            let lastSelectedFilter = {}; // Menyimpan state terakhir tiap grup filter
+
             // Setup event listeners
             document.getElementById('search').addEventListener('input', handleSearchAndFilter);
             document.querySelectorAll('.filter-input').forEach(input => {
-                input.addEventListener('change', handleSearchAndFilter);
+                input.addEventListener('click', handleUnselect);
             });
+
+            function handleUnselect(event) {
+                const input = event.target;
+                const groupName = input.name;
+
+                // Kalau klik filter yang sama, unselect
+                if (lastSelectedFilter[groupName] === input) {
+                    input.checked = false;
+                    lastSelectedFilter[groupName] = null;
+                } else {
+                    lastSelectedFilter[groupName] = input;
+                }
+
+                handleSearchAndFilter();
+            }
 
             function handleSearchAndFilter() {
                 const selectedFilters = {};
@@ -72,10 +142,53 @@
                     })
                     .then(data => {
                         document.getElementById('table-container').innerHTML = data.html;
+
+                        // ✅ Re-bind event setelah fetch selesai
+                        rebindCheckboxEvents();
                     })
                     .catch(error => console.error('Error fetching filter results:', error));
             }
+
+            // 💪 Fungsi buat pasang ulang event checkbox setelah data ke-fetch
+            function rebindCheckboxEvents() {
+                const selectAllCheckbox = document.getElementById('checkbox-all');
+                const checkboxes = document.querySelectorAll('.item-checkbox');
+                const selectedIdsInput = document.getElementById('selectedIds');
+
+                // Select All Checkbox Event
+                selectAllCheckbox.addEventListener('change', () => {
+                    checkboxes.forEach((checkbox) => (checkbox.checked = selectAllCheckbox.checked));
+                    updateSelectedIds();
+                });
+
+                // Event checkbox individual
+                checkboxes.forEach((checkbox) => {
+                    checkbox.addEventListener('change', () => {
+                        selectAllCheckbox.checked = [...checkboxes].every(cb => cb.checked);
+                        updateSelectedIds();
+                    });
+                });
+
+                // Fungsi update selected IDs
+                function updateSelectedIds() {
+                    const selectedIds = Array.from(checkboxes)
+                        .filter((checkbox) => checkbox.checked)
+                        .map((checkbox) => checkbox.value);
+
+                    selectedIdsInput.value = selectedIds.join(',');
+
+                    // Cek ulang Select All (kalau semua ke-check, otomatis aktif)
+                    selectAllCheckbox.checked = checkboxes.length === selectedIds.length;
+                }
+
+                // Pastikan ulang selected IDs tetap tersimpan
+                updateSelectedIds();
+            }
+
+            // 🔥 Panggil rebind pertama kali (buat table awal sebelum fetch)
+            rebindCheckboxEvents();
         });
     </script>
+
 
 </x-layout>

@@ -38,11 +38,41 @@
 
 <body class="h-full bg-gray-200 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div class="min-h-full">
+
+
         <!-- Notification Alert -->
-        @if (session()->has('success') || session()->has('error'))
+        @if ($errors->any() || session()->has('success') || session()->has('warning'))
+
+
             <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="fixed top-4 right-4 z-50">
+                <!-- Error Handling -->
+                @if ($errors->any())
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg mb-2">
+                        <div class="flex items-center">
+                            <div class="py-1">
+                                <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                @foreach ($errors->all() as $error)
+                                    <p>{{ $error }}</p>
+                                @endforeach
+                            </div>
+                            <button @click="show = false" class="ml-4">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Success Message -->
                 @if (session()->has('success'))
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg">
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg mb-2">
                         <div class="flex items-center">
                             <div class="py-1">
                                 <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,8 +90,10 @@
                         </div>
                     </div>
                 @endif
-                @if (session()->has('error'))
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg">
+
+                <!-- Warning Message -->
+                @if (session()->has('warning'))
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg mb-2">
                         <div class="flex items-center">
                             <div class="py-1">
                                 <svg class="w-6 h-6 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +101,7 @@
                                         d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </div>
-                            <div>{{ session('error') }}</div>
+                            <div>{{ session('warning') }}</div>
                             <button @click="show = false" class="ml-4">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -81,6 +113,8 @@
                 @endif
             </div>
         @endif
+
+
 
         @include('layouts.sidebar')
 

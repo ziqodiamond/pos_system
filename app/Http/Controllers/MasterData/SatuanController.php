@@ -57,43 +57,58 @@ class SatuanController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'kode' => 'required|unique:satuans',
-            'nama' => 'required',
-            'status_satuan' => 'required|in:satuan_dasar,konversi_satuan',
-            'keterangan' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'kode' => 'required|unique:satuans',
+                'nama' => 'required',
+                'status_satuan' => 'required|in:satuan_dasar,konversi_satuan',
+                'keterangan' => 'nullable|string',
+            ]);
 
-        $satuan = new Satuan();
-        $satuan->kode = $request->kode;
-        $satuan->nama = $request->nama;
-        $satuan->status_satuan = $request->status_satuan;
-        $satuan->keterangan = $request->keterangan;
-        $satuan->status = $request->has('status') ? 'active' : 'inactive';
-        $satuan->save();
+            $satuan = new Satuan();
+            $satuan->kode = $request->kode;
+            $satuan->nama = $request->nama;
+            $satuan->status_satuan = $request->status_satuan;
+            $satuan->keterangan = $request->keterangan;
+            $satuan->status = $request->has('status') ? 'active' : 'inactive';
+            $satuan->save();
 
-        return redirect()->back()->with('success', 'Satuan berhasil ditambahkan');
+            return redirect()->back()->with('success', 'Satuan berhasil ditambahkan');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function update(Request $request, $id)
     {
+
         $request->validate([
             'kode' => 'required|unique:satuans,kode,' . $id,
             'nama' => 'required',
-            'status_satuan' => 'required|in:satuan_satuan,satuan_konversi',
+            'status_satuan' => 'required|in:satuan_satuan,konversi_satuan',
             'keterangan' => 'nullable|string',
-            'status' => 'required|in:aktif,nonaktif',
         ]);
 
         $satuan = Satuan::findOrFail($id);
-        $satuan->kode = $request->kode;
-        $satuan->nama = $request->nama;
-        $satuan->status_satuan = $request->status_satuan;
-        $satuan->keterangan = $request->keterangan;
-        $satuan->status = $request->status;
-        $satuan->save();
+        try {
+            // Create array of new values
+            $satuan->fill([
+                'kode' => $request->kode,
+                'nama' => $request->nama,
+                'status_satuan' => $request->status_satuan,
+                'keterangan' => $request->keterangan,
+                'status' => $request->filled('status') ? 'active' : 'inactive'
+            ]);
 
-        return redirect()->back()->with('success', 'Satuan berhasil diperbarui');
+            if ($satuan->isDirty()) {
+                $satuan->save();
+                return redirect()->back()->with('success', 'Customer berhasil diperbarui');
+            }
+
+            return redirect()->back()->with('info', 'Tidak ada perubahan yang dilakukan');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
@@ -112,33 +127,52 @@ class SatuanController extends Controller
     {
         $request->validate([
             'action' => 'required|in:edit,delete',
-            'selected' => 'required|array',
-            'selected.*' => 'uuid', // Validasi semua id harus UUID
+            'selected' => 'required|string',
+            'status' => 'nullable|in:active,inactive'
+        ], [
+            'action.required' => 'Aksi wajib dipilih!',
+            'action.in' => 'Aksi yang dipilih tidak valid!',
+            'selected.required' => 'Tidak ada data yang dipilih!',
+            'selected.string' => 'Format data tidak valid!',
+            'status.in' => 'Status harus berupa "active" atau "inactive"!'
         ]);
 
         $action = $request->input('action');
-        $selectedIds = $request->input('selected');
+        $selectedString = $request->input('selected');
+        $newStatus = $request->input('status');
 
-        // Cek dulu kalau gak ada data yang dipilih
-        if (!$selectedIds || count($selectedIds) == 0) {
+        if (empty($selectedString)) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
+        }
+
+        $selectedIds = array_filter(array_map('trim', explode(',', $selectedString)));
+
+        foreach ($selectedIds as $id) {
+            if (!preg_match('/^[a-f0-9\-]{36}$/', $id)) {
+                return redirect()->back()->with('error', 'ID tidak valid!');
+            }
+        }
+
+        if (empty($selectedIds)) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
         }
 
         try {
-            // Aksi massal: Ubah status jadi "Aktif"
-            if ($action === 'edit') {
-                Satuan::whereIn('id', $selectedIds)->update(['status' => 'aktif']);
-                return redirect()->back()->with('success', 'Status berhasil diubah!');
-            }
+            switch ($action) {
+                case 'edit':
+                    if ($newStatus) {
+                        Satuan::whereIn('id', $selectedIds)->update(['status' => $newStatus]);
+                        return redirect()->back()->with('success', 'Status customer berhasil diubah!');
+                    }
+                    return redirect()->back()->with('error', 'Status baru harus dipilih!');
 
-            // Aksi massal: Hapus data
-            if ($action === 'delete') {
-                Satuan::whereIn('id', $selectedIds)->delete();
-                return redirect()->back()->with('success', 'Data berhasil dihapus!');
-            }
+                case 'delete':
+                    Satuan::whereIn('id', $selectedIds)->delete();
+                    return redirect()->back()->with('success', 'Customer berhasil dihapus!');
 
-            // Kalau action gak dikenali
-            return redirect()->back()->with('error', 'Aksi tidak valid!');
+                default:
+                    return redirect()->back()->with('error', 'Aksi tidak valid!');
+            }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

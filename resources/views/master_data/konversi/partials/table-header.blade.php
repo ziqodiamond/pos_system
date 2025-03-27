@@ -47,25 +47,78 @@
                 </svg>
                 Aksi
             </button>
-            <div id="actionsDropdown"
+            <div id="actionsDropdown" x-data="{ showModal: false, actionType: '', confirmMessage: '', selectedStatus: '' }"
                 class="z-10 hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
                 <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="actionsDropdownButton">
-                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <button type="button" id="massEditButton"
-                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit
+
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600" id="deleteAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='delete'; confirmMessage='Yakin ingin menghapus konversi terpilih?'"
+                            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                            Hapus
                         </button>
                     </li>
-                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <button type="button" id="massDeleteButton"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Hapus</button>
-                    </li>
+
+
                 </ul>
+
+
+                <!-- Modal Konfirmasi dalam Dropdown -->
+                <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+                    x-cloak>
+                    <div class="bg-white p-6 rounded-lg shadow-lg dark:bg-gray-700">
+                        <h2 class="text-lg font-semibold mb-4" x-text="confirmMessage"></h2>
+                        <form action="{{ route('konversi.bulkAction') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="action" :value="actionType">
+                            <input type="hidden" name="selected" id="selectedIds" value="">
+
+                            <!-- Jika Edit, Tampilkan Status -->
+                            <template x-if="actionType === 'edit'">
+                                <div class="mb-4">
+                                    <label for="status"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pilih
+                                        Status:</label>
+                                    <select id="status" name="status" x-model="selectedStatus"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-600 dark:text-white">
+                                        <option value="active">Aktif</option>
+                                        <option value="inactive">Nonaktif</option>
+                                    </select>
+                                </div>
+                            </template>
+
+                            <!-- Tombol Konfirmasi -->
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded mb-2">
+                                Ya
+                            </button>
+                            <button type="button" @click="showModal=false"
+                                class="w-full bg-gray-300 hover:bg-gray-400 text-black font-semibold py-2 rounded">
+                                Batal
+                            </button>
+                        </form>
+                    </div>
+                </div>
 
             </div>
             <x-master-filter :filterGroups="[
                 'Urutkan' => [['kode' => 'terbaru', 'nama' => 'Terbaru'], ['kode' => 'terlama', 'nama' => 'Terlama']],
             ]" />
+            <script>
+                // Panggil fungsi pas filter berubah
+                document.querySelectorAll('.filter-input').forEach(input => {
+                    input.addEventListener('click', function() {
+                        const allInputs = document.querySelectorAll('.filter-input');
 
+                        // Uncheck semua input kecuali yang diklik
+                        allInputs.forEach(i => i.checked = false);
+
+                        // Toggle hanya yang diklik (kalau sebelumnya unchecked, jadi checked)
+                        this.checked = !this.checked;
+
+                    });
+                });
+            </script>
 
         </div>
     </div>

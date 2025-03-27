@@ -57,41 +57,55 @@ class KonversiController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'satuan_konversi_id' => 'required|uuid|exists:satuans,id',
-            'satuan_dasar_id' => 'required|uuid|exists:satuans,id',
-            'nilai_konversi' => 'required|numeric',
-        ]);
+        try {
+            $request->validate([
+                'satuan_konversi_id' => 'required|uuid|exists:satuans,id',
+                'satuan_dasar_id' => 'required|uuid|exists:satuans,id',
+                'nilai_konversi' => 'required|numeric',
+            ]);
 
-        $konversi = new Konversi();
-        $konversi->satuan_id = $request->satuan_konversi_id;
-        $konversi->nilai_konversi = $request->nilai_konversi;
-        $konversi->satuan_tujuan_id = $request->satuan_dasar_id;
-        $konversi->save();
+            $konversi = new Konversi();
+            $konversi->satuan_id = $request->satuan_konversi_id;
+            $konversi->nilai_konversi = $request->nilai_konversi;
+            $konversi->satuan_tujuan_id = $request->satuan_dasar_id;
+            $konversi->save();
 
-        return redirect()->back()->with('success', 'Konversi berhasil ditambahkan');
+            return redirect()->back()->with('success', 'Konversi berhasil ditambahkan');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function update(Request $request, $id)
     {
+        // Validasi input request yang diterima
         $request->validate([
-            'barang_id' => 'required',
-            'satuan_id' => 'required',
+            'satuan_konversi_id' => 'required|uuid|exists:satuans,id',
+            'satuan_tujuan_id' => 'required|uuid|exists:satuans,id',
             'nilai_konversi' => 'required|numeric',
-            'satuan_tujuan_id' => 'required',
-            'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        $konversi = Konversi::findOrFail($id);
-        $konversi->barang_id = $request->barang_id;
-        $konversi->satuan_id = $request->satuan_id;
-        $konversi->nilai_konversi = $request->nilai_konversi;
-        $konversi->satuan_tujuan_id = $request->satuan_tujuan_id;
-        $konversi->status = $request->status;
-        $konversi->save();
+        try {
+            // Temukan data konversi berdasarkan ID
+            $konversi = Konversi::findOrFail($id);
 
-        return redirect()->back()->with('success', 'Konversi berhasil diperbarui');
+            // Update data konversi
+            $konversi->satuan_id = $request->satuan_konversi_id;
+            $konversi->satuan_tujuan_id = $request->satuan_tujuan_id;
+            $konversi->nilai_konversi = $request->nilai_konversi;
+
+            // Simpan perubahan jika ada
+            if ($konversi->isDirty()) {
+                $konversi->save();
+                return redirect()->back()->with('success', 'Satuan berhasil diperbarui');
+            }
+
+            return redirect()->back()->with('info', 'Tidak ada perubahan data');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
+
 
     public function destroy($id)
     {
@@ -105,37 +119,51 @@ class KonversiController extends Controller
         }
     }
 
+
     public function bulkAction(Request $request)
     {
         $request->validate([
             'action' => 'required|in:edit,delete',
-            'selected' => 'required|array',
-            'selected.*' => 'uuid', // Validasi semua id harus UUID
+            'selected' => 'required|string',
+            'status' => 'nullable|in:active,inactive'
+        ], [
+            'action.required' => 'Aksi wajib dipilih!',
+            'action.in' => 'Aksi yang dipilih tidak valid!',
+            'selected.required' => 'Tidak ada data yang dipilih!',
+            'selected.string' => 'Format data tidak valid!',
+            'status.in' => 'Status harus berupa "active" atau "inactive"!'
         ]);
 
         $action = $request->input('action');
-        $selectedIds = $request->input('selected');
+        $selectedString = $request->input('selected');
+        $newStatus = $request->input('status');
 
-        // Cek dulu kalau gak ada data yang dipilih
-        if (!$selectedIds || count($selectedIds) == 0) {
+        if (empty($selectedString)) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
+        }
+
+        $selectedIds = array_filter(array_map('trim', explode(',', $selectedString)));
+
+        foreach ($selectedIds as $id) {
+            if (!preg_match('/^[a-f0-9\-]{36}$/', $id)) {
+                return redirect()->back()->with('error', 'ID tidak valid!');
+            }
+        }
+
+        if (empty($selectedIds)) {
             return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
         }
 
         try {
-            // Aksi massal: Ubah status jadi "Aktif"
-            if ($action === 'edit') {
-                Konversi::whereIn('id', $selectedIds)->update(['status' => 'aktif']);
-                return redirect()->back()->with('success', 'Status berhasil diubah!');
-            }
+            switch ($action) {
 
-            // Aksi massal: Hapus data
-            if ($action === 'delete') {
-                Konversi::whereIn('id', $selectedIds)->delete();
-                return redirect()->back()->with('success', 'Data berhasil dihapus!');
-            }
+                case 'delete':
+                    Konversi::whereIn('id', $selectedIds)->delete();
+                    return redirect()->back()->with('success', 'Konversi berhasil dihapus!');
 
-            // Kalau action gak dikenali
-            return redirect()->back()->with('error', 'Aksi tidak valid!');
+                default:
+                    return redirect()->back()->with('error', 'Aksi tidak valid!');
+            }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

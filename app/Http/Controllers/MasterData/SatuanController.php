@@ -102,7 +102,7 @@ class SatuanController extends Controller
 
             if ($satuan->isDirty()) {
                 $satuan->save();
-                return redirect()->back()->with('success', 'Customer berhasil diperbarui');
+                return redirect()->back()->with('success', 'Satuan berhasil diperbarui');
             }
 
             return redirect()->back()->with('info', 'Tidak ada perubahan yang dilakukan');

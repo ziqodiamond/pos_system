@@ -16,56 +16,88 @@
                 {{-- Edit Modal --}}
                 <x-base-modal :id="'editModal-' . $item->id" title="Edit Konversi" triggerText="Edit"
                     triggerClass="font-medium text-blue-600 dark:text-blue-500 hover:underline">
-                    <form class="space-y-6" action="{{ route('konversi.update', $item->id) }}" method="POST">
+                    <form action="{{ route('konversi.update', $item->id) }}" method="POST">
                         @csrf
                         @method('PUT')
-                        <div>
-                            <label for="barang-{{ $item->id }}"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Barang</label>
-                            <input type="text" name="barang" id="barang-{{ $item->id }}"
-                                value="{{ $item->barang?->nama }}"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required>
+                        <div x-data="dropdownEditKonversi('{{ $item->satuan?->id ?? '' }}')" x-init="init()">
+                            <label for="satuan_konversi"
+                                class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">
+                                Satuan Konversi
+                            </label>
+                            <div class="relative">
+                                <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()"
+                                    autocomplete="off"
+                                    placeholder="{{ $item->satuan?->nama ?? 'Cari Satuan Konversi...' }}"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 
+                                           focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
+                                           dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+
+                                <!-- Dropdown List -->
+                                <ul x-show="open" @click.outside="close()" x-cloak
+                                    class="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto">
+                                    <template x-for="satuan in filteredSatuan" :key="satuan.id">
+                                        <li @click="select(satuan)" class="px-4 py-2 cursor-pointer hover:bg-gray-100">
+                                            <span x-text="satuan.nama"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+
+                                <!-- Hidden Input untuk Form -->
+                                <input type="text" name="satuan_konversi_id" :value="selectedId">
+                            </div>
                         </div>
-                        <div>
-                            <label for="satuan-{{ $item->id }}"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Satuan
+
+                        <!-- Satuan Dasar Component -->
+                        <div class="mt-2" x-data="dropdownEditDasar('{{ $item->satuanTujuan?->id ?? '' }}')" x-init="init()">
+                            <label for="satuan_dasar"
+                                class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">
+                                Satuan Dasar
+                            </label>
+                            <div class="relative">
+                                <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()"
+                                    autocomplete="off"
+                                    placeholder="{{ $item->satuanTujuan?->nama ?? 'Cari Satuan Dasar...' }}"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                                <ul x-show="open" @click.outside="close()" x-cloak
+                                    class="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto">
+                                    <template x-for="satuan in filteredSatuan" :key="satuan.id">
+                                        <li @click="select(satuan)" class="px-4 py-2 cursor-pointer hover:bg-gray-100">
+                                            <span x-text="satuan.nama"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                                <input type="text" name="satuan_tujuan_id" :value="selectedId">
+                            </div>
+                        </div>
+
+
+
+
+
+
+                        <div class="mt-2">
+                            <label for="nilai_konversi" class="block text-sm font-medium text-gray-700">Nilai
                                 Konversi</label>
-                            <input type="text" name="satuan" id="satuan-{{ $item->id }}"
-                                value="{{ $item->satuan?->nama }}"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required>
-                        </div>
-                        <div>
-                            <label for="nilai-{{ $item->id }}"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nilai
-                                Konversi</label>
-                            <input type="number" name="nilai" id="nilai-{{ $item->id }}"
-                                value="{{ $item->nilai }}"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required>
-                        </div>
-                        <div>
-                            <label for="satuanTujuan-{{ $item->id }}"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Satuan
-                                Tujuan</label>
-                            <input type="text" name="satuanTujuan" id="satuanTujuan-{{ $item->id }}"
-                                value="{{ $item->satuanTujuan?->nama }}"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required>
+                            <input type="number" step="0.01" name="nilai_konversi" id="nilai_konversi"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                value="{{ $item->nilai_konversi }}">
+                            <p class="mt-1 text-sm text-gray-500">
+                                Masukkan jumlah satuan dasar yang setara dengan 1 satuan konversi.
+                                Contoh: Jika 1 Lusin = 12 Pcs, maka nilai konversinya adalah 12.
+                            </p>
                         </div>
                         <button type="submit"
-                            class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            class="mt-6 w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                             Save
                         </button>
                     </form>
                 </x-base-modal>
 
                 {{-- Delete Modal --}}
-                <x-base-modal :id="'deleteModal-' . $item->id" title="Delete Konversi" triggerText="Delete"
+                <x-base-modal :id="'deleteModal-' . $item->id" title="Delete Konversi" triggerText="Hapus"
                     triggerClass="font-medium text-red-600 dark:text-red-500 hover:underline">
                     <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                        Are you sure you want to delete this konversi?
+                        Apakah anda yakin ingin menghapus konversi ini?
                     </p>
                     <form class="space-y-6" action="{{ route('konversi.destroy', $item->id) }}" method="POST">
                         @csrf
@@ -73,7 +105,7 @@
 
                         <button
                             class="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-                            Delete</button>
+                            Hapus</button>
                     </form>
                 </x-base-modal>
             </td>
@@ -88,70 +120,3 @@
 </x-master-table>
 
 {{ $konversi->links() }}
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const checkboxes = document.querySelectorAll('.item-checkbox');
-        const selectAllCheckbox = document.getElementById('checkbox-all');
-        const massEditButton = document.getElementById('massEditButton');
-        const massDeleteButton = document.getElementById('massDeleteButton');
-        const bulkForm = document.getElementById('bulkForm');
-        const bulkActionType = document.getElementById('bulkActionType');
-
-        // Select All Checkbox
-        window.toggleCheckboxes = function(source) {
-            checkboxes.forEach((checkbox) => {
-                checkbox.checked = source.checked;
-            });
-            toggleMassActionButtons();
-        };
-
-        // Cek tiap checkbox apakah ada yang dicentang
-        checkboxes.forEach((checkbox) => {
-            checkbox.addEventListener('change', () => {
-                // Auto uncheck "Select All" kalau ada yang gak dicentang
-                selectAllCheckbox.checked = [...checkboxes].every(cb => cb.checked);
-                toggleMassActionButtons();
-            });
-        });
-
-        // Aktif/nonaktif tombol aksi massal
-        function toggleMassActionButtons() {
-            const anyChecked = Array.from(checkboxes).some((checkbox) => checkbox.checked);
-            massEditButton.disabled = !anyChecked;
-            massDeleteButton.disabled = !anyChecked;
-        }
-
-        // Tombol Mass Edit
-        massEditButton.addEventListener('click', () => {
-            if (getSelectedIds().length === 0) {
-                alert('Pilih minimal satu data untuk diedit!');
-                return;
-            }
-            bulkActionType.value = "edit";
-            bulkForm.submit();
-        });
-
-        // Tombol Mass Delete + konfirmasi
-        massDeleteButton.addEventListener('click', (e) => {
-            const selectedIds = getSelectedIds();
-            if (selectedIds.length === 0) {
-                alert('Pilih minimal satu data untuk dihapus!');
-                return;
-            }
-            const confirmDelete = confirm(
-                `Yakin ingin menghapus ${selectedIds.length} data yang dipilih?`);
-            if (confirmDelete) {
-                bulkActionType.value = "delete";
-                bulkForm.submit();
-            }
-        });
-
-        // Fungsi bantu buat ambil semua ID yang dipilih
-        function getSelectedIds() {
-            return Array.from(checkboxes)
-                .filter((checkbox) => checkbox.checked)
-                .map((checkbox) => checkbox.value);
-        }
-    });
-</script>

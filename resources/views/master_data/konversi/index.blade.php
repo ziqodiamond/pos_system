@@ -23,6 +23,201 @@
             <div id="table-container" class="overflow-x-auto shadow-md sm:rounded-lg mt-2">
                 @include('master_data.konversi.partials.table')
             </div>
+            @foreach ($konversi as $iten)
+                <script>
+                    // Fungsi untuk dropdown edit konversi dengan inisialisasi satuan terpilih
+                    // Fungsi dropdown edit konversi dengan inisialisasi yang lebih baik
+                    function dropdownEditKonversi(initialId = '') {
+                        return {
+                            // Status dropdown
+                            open: false,
+                            // Kata kunci pencarian
+                            search: '',
+                            // ID satuan yang dipilih
+                            selectedId: initialId,
+                            // Objek satuan yang dipilih
+                            selected: {},
+                            // Daftar satuan konversi dari database
+                            satuanList: @json($satuanKonversi),
+
+                            // Fungsi untuk menyaring satuan berdasarkan pencarian
+                            get filteredSatuan() {
+                                return this.search.trim() === '' ?
+                                    this.satuanList :
+                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                            },
+
+                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                            init() {
+                                this.selectedId = initialId;
+                                this.selected = this.satuanList.find(satuan => satuan.id === this.selectedId) || {};
+
+                            },
+
+                            // Metode untuk memilih satuan
+                            select(satuan) {
+                                this.selected = satuan;
+                                this.selectedId = satuan.id; // Perbarui selectedId
+                                this.search = satuan.nama;
+                                this.close();
+                            },
+
+                            // Tutup dropdown
+                            close() {
+                                this.open = false;
+                            },
+
+                            // Buka dropdown
+                            openDropdown() {
+                                this.open = true;
+                            },
+
+                            // Pantau perubahan pencarian
+                            watchSearch() {
+                                this.open = true;
+                            }
+                        };
+                    }
+
+                    // Fungsi untuk dropdown edit satuan dasar dengan inisialisasi satuan terpilih
+                    function dropdownEditDasar(initialId = '') {
+                        return {
+                            open: false,
+                            search: '',
+                            // ID satuan yang dipilih
+                            selectedId: initialId,
+                            selected: {},
+                            satuanList: @json($satuanDasar),
+
+                            get filteredSatuan() {
+                                return this.search.trim() === '' ?
+                                    this.satuanList :
+                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                            },
+
+                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                            init() {
+                                this.selectedId = initialId;
+                                this.selected = this.satuanList.find(satuan => satuan.id === this.selectedId) || {};
+
+                            },
+
+                            select(satuan) {
+
+                                this.search = satuan.nama;
+                                this.selected = satuan;
+                                this.selectedId = satuan.id; // Perbarui selectedId
+                                this.close();
+                            },
+
+                            close() {
+                                this.open = false;
+                            },
+
+                            openDropdown() {
+                                this.open = true;
+                            },
+
+                            watchSearch() {
+                                this.open = true;
+                            }
+                        };
+                    }
+
+                    // Fungsi untuk dropdown satuan dasar dengan inisialisasi satuan terpilih
+                    function dropdownDasar() {
+                        return {
+                            open: false,
+                            search: '',
+                            selected: {},
+                            satuanList: @json($satuanDasar),
+
+                            get filteredSatuan() {
+                                return this.search.trim() === '' ?
+                                    this.satuanList :
+                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                            },
+
+                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                            init() {
+                                // Ambil ID satuan dari input lama
+                                let selectedId = {{ old('satuan_dasar_id') ?? 'null' }};
+
+                                // Cari satuan yang sesuai dengan ID
+                                this.selected = this.satuanList.find(satuan => satuan.id === selectedId) || {};
+
+                                // Atur nama pencarian sesuai satuan terpilih
+                                this.search = this.selected.nama || '';
+                            },
+
+                            select(satuan) {
+                                this.selected = satuan;
+                                this.search = satuan.nama;
+                                this.close();
+                            },
+
+                            close() {
+                                this.open = false;
+                            },
+
+                            openDropdown() {
+                                this.open = true;
+                            },
+
+                            watchSearch() {
+                                this.open = true;
+                            }
+                        };
+                    }
+
+                    // Fungsi untuk dropdown satuan konversi dengan inisialisasi satuan terpilih
+                    function dropdownKonversi() {
+                        return {
+                            open: false,
+                            search: '',
+                            selected: {},
+                            satuanList: @json($satuanKonversi),
+
+                            get filteredSatuan() {
+                                return this.search.trim() === '' ?
+                                    this.satuanList :
+                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                            },
+
+                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                            init() {
+                                // Ambil ID satuan dari input lama
+                                let selectedId = {{ old('satuan_konversi_id') ?? 'null' }};
+
+                                // Cari satuan yang sesuai dengan ID
+                                this.selected = this.satuanList.find(satuan => satuan.id === selectedId) || {};
+
+                                // Atur nama pencarian sesuai satuan terpilih
+                                this.search = this.selected.nama || '';
+                            },
+
+                            select(satuan) {
+                                this.selected = satuan;
+                                this.search = satuan.nama;
+                                this.close();
+                            },
+
+                            close() {
+                                this.open = false;
+                            },
+
+                            openDropdown() {
+                                this.open = true;
+                            },
+
+                            watchSearch() {
+                                this.open = true;
+                            }
+                        };
+                    }
+                </script>
+            @endforeach
+
 
 
 
@@ -36,11 +231,28 @@
         const reportSearchRoute = @json(route('konversi.index'));
 
         document.addEventListener('DOMContentLoaded', () => {
+            let lastSelectedFilter = {}; // Menyimpan state terakhir tiap grup filter
+
             // Setup event listeners
             document.getElementById('search').addEventListener('input', handleSearchAndFilter);
             document.querySelectorAll('.filter-input').forEach(input => {
-                input.addEventListener('change', handleSearchAndFilter);
+                input.addEventListener('click', handleUnselect);
             });
+
+            function handleUnselect(event) {
+                const input = event.target;
+                const groupName = input.name;
+
+                // Kalau klik filter yang sama, unselect
+                if (lastSelectedFilter[groupName] === input) {
+                    input.checked = false;
+                    lastSelectedFilter[groupName] = null;
+                } else {
+                    lastSelectedFilter[groupName] = input;
+                }
+
+                handleSearchAndFilter();
+            }
 
             function handleSearchAndFilter() {
                 const selectedFilters = {};
@@ -69,9 +281,51 @@
                     })
                     .then(data => {
                         document.getElementById('table-container').innerHTML = data.html;
+
+                        // ✅ Re-bind event setelah fetch selesai
+                        rebindCheckboxEvents();
                     })
                     .catch(error => console.error('Error fetching filter results:', error));
             }
+
+            // 💪 Fungsi buat pasang ulang event checkbox setelah data ke-fetch
+            function rebindCheckboxEvents() {
+                const selectAllCheckbox = document.getElementById('checkbox-all');
+                const checkboxes = document.querySelectorAll('.item-checkbox');
+                const selectedIdsInput = document.getElementById('selectedIds');
+
+                // Select All Checkbox Event
+                selectAllCheckbox.addEventListener('change', () => {
+                    checkboxes.forEach((checkbox) => (checkbox.checked = selectAllCheckbox.checked));
+                    updateSelectedIds();
+                });
+
+                // Event checkbox individual
+                checkboxes.forEach((checkbox) => {
+                    checkbox.addEventListener('change', () => {
+                        selectAllCheckbox.checked = [...checkboxes].every(cb => cb.checked);
+                        updateSelectedIds();
+                    });
+                });
+
+                // Fungsi update selected IDs
+                function updateSelectedIds() {
+                    const selectedIds = Array.from(checkboxes)
+                        .filter((checkbox) => checkbox.checked)
+                        .map((checkbox) => checkbox.value);
+
+                    selectedIdsInput.value = selectedIds.join(',');
+
+                    // Cek ulang Select All (kalau semua ke-check, otomatis aktif)
+                    selectAllCheckbox.checked = checkboxes.length === selectedIds.length;
+                }
+
+                // Pastikan ulang selected IDs tetap tersimpan
+                updateSelectedIds();
+            }
+
+            // 🔥 Panggil rebind pertama kali (buat table awal sebelum fetch)
+            rebindCheckboxEvents();
         });
     </script>
 

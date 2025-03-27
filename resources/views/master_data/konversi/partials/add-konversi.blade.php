@@ -1,7 +1,6 @@
 <!-- Modal -->
-<div x-show="addModal" @click.away="addModal = false"
-    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
+<div x-show="addModal" x-cloak class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white p-6 rounded-lg w-full max-w-2xl" @click.outside="addModal = false">
 
         <!-- Header Modal -->
         <div class="flex justify-between items-center mb-4">
@@ -59,87 +58,7 @@
                 </div>
             </div>
 
-            <script>
-                // Dropdown Satuan Dasar
-                function dropdownDasar() {
-                    return {
-                        open: false,
-                        search: '',
-                        selected: {},
-                        satuanList: @json($satuanDasar),
-
-                        get filteredSatuan() {
-                            return this.search.trim() === '' ?
-                                this.satuanList :
-                                this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
-                        },
-
-                        init() {
-                            this.selected = this.satuanList.find(satuan => satuan.id === {{ old('satuan_dasar_id') ?? 'null' }}) ||
-                            {};
-                            this.search = this.selected.nama || '';
-                        },
-
-                        select(satuan) {
-                            this.selected = satuan;
-                            this.search = satuan.nama;
-                            this.close();
-                        },
-
-                        close() {
-                            this.open = false;
-                        },
-
-                        openDropdown() {
-                            this.open = true;
-                        },
-
-                        watchSearch() {
-                            this.open = true;
-                        }
-                    };
-                }
-
-                // Dropdown Satuan Konversi
-                function dropdownKonversi() {
-                    return {
-                        open: false,
-                        search: '',
-                        selected: {},
-                        satuanList: @json($satuanKonversi),
-
-                        get filteredSatuan() {
-                            return this.search.trim() === '' ?
-                                this.satuanList :
-                                this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
-                        },
-
-                        init() {
-                            this.selected = this.satuanList.find(satuan => satuan.id ===
-                                {{ old('satuan_konversi_id') ?? 'null' }}) || {};
-                            this.search = this.selected.nama || '';
-                        },
-
-                        select(satuan) {
-                            this.selected = satuan;
-                            this.search = satuan.nama;
-                            this.close();
-                        },
-
-                        close() {
-                            this.open = false;
-                        },
-
-                        openDropdown() {
-                            this.open = true;
-                        },
-
-                        watchSearch() {
-                            this.open = true;
-                        }
-                    };
-                }
-            </script>
+            <script></script>
 
 
 

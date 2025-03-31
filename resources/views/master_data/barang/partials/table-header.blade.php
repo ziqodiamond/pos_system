@@ -1,7 +1,7 @@
 <div class="flex flex-col items-center justify-between p-4 space-y-3 md:flex-row md:space-y-0 md:space-x-4">
     <div class="w-full md:w-1/2">
-        <form class="flex items-center">
-            <label for="simple-search" class="sr-only">Cari</label>
+        <div class="flex items-center">
+            <label for="search" class="sr-only">Cari</label>
             <div class="relative w-full">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor"
@@ -11,13 +11,13 @@
                             clip-rule="evenodd" />
                     </svg>
                 </div>
-                <input type="text" id="simple-search"
+                <input type="text" id="search"
                     class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 
                        focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 
                        dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                     placeholder="Cari Berdasarkan Kode dan Nama Barang">
             </div>
-        </form>
+        </div>
 
     </div>
     <div
@@ -47,114 +47,133 @@
                 </svg>
                 Aksi
             </button>
-            <div id="actionsDropdown"
+            <div id="actionsDropdown" x-data="{ showModal: false, actionType: '', confirmMessage: '', selectedStatus: '' }"
                 class="z-10 hidden bg-white divide-y divide-gray-100 rounded shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
                 <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="actionsDropdownButton">
-                    <li>
-                        <a href="#"
-                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit
-                        </a>
+                    <!-- Tombol default -->
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600" id="editAction">
+                        <button type="button" @click="showModal=true; actionType='edit'; confirmMessage='Edit Barang'"
+                            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            Edit
+                        </button>
+                    </li>
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600" id="deleteAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='delete'; confirmMessage='Yakin ingin menghapus barang terpilih?'"
+                            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                            Hapus
+                        </button>
+                    </li>
+
+                    <!-- Tombol tambahan jika status 'Dihapus' -->
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600 hidden" id="restoreAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='restore'; confirmMessage='Yakin ingin merestore barang terpilih?'"
+                            class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            Restore
+                        </button>
+                    </li>
+                    <li class="hover:bg-gray-100 dark:hover:bg-gray-600 hidden" id="forceDeleteAction">
+                        <button type="button"
+                            @click="showModal=true; actionType='forceDelete'; confirmMessage='Yakin ingin menghapus permanen barang terpilih?'"
+                            class="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-red-400">
+                            Hapus Permanen
+                        </button>
                     </li>
                 </ul>
-                <div class="py-1">
-                    <a href="#"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Hapus</a>
+
+
+                <!-- Modal Konfirmasi dalam Dropdown -->
+                <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+                    x-cloak>
+                    <div class="bg-white p-6 rounded-lg shadow-lg dark:bg-gray-700">
+                        <h2 class="text-lg font-semibold mb-4" x-text="confirmMessage"></h2>
+                        <form action="{{ route('barang.bulkAction') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="action" :value="actionType">
+                            <input type="hidden" name="selected" id="selectedIds" value="">
+
+                            <!-- Jika Edit, Tampilkan Status -->
+                            <template x-if="actionType === 'edit'">
+                                <div class="mb-4">
+                                    <label for="status"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pilih
+                                        Status:</label>
+                                    <select id="status" name="status" x-model="selectedStatus"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-600 dark:text-white">
+                                        <option value="active">Aktif</option>
+                                        <option value="inactive">Nonaktif</option>
+                                    </select>
+                                </div>
+                            </template>
+
+                            <!-- Tombol Konfirmasi -->
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded mb-2">
+                                Ya
+                            </button>
+                            <button type="button" @click="showModal=false"
+                                class="w-full bg-gray-300 hover:bg-gray-400 text-black font-semibold py-2 rounded">
+                                Batal
+                            </button>
+                        </form>
+                    </div>
                 </div>
+
             </div>
-            <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown"
-                class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg md:w-auto focus:outline-none hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="w-4 h-4 mr-2 text-gray-400"
-                    viewbox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                        clip-rule="evenodd" />
-                </svg>
-                Filter
-                <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewbox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path clip-rule="evenodd" fill-rule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a11 0 010-1.414z" />
-                </svg>
-            </button>
-            <!-- Dropdown menu -->
-            <div id="filterDropdown" class="z-10 hidden w-48 p-3 bg-white rounded-lg shadow dark:bg-gray-700">
-                <h6 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Urutkan Berdasarkan
-                </h6>
-                <ul class="space-y-2 text-sm mb-2" aria-labelledby="dropdownDefault">
-                    <li class="flex items-center">
-                        <input id="terbaru" type="checkbox" value="terbaru"
-                            class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                        <label for="terbaru" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Terbaru
-                        </label>
-                    </li>
-                    <li class="flex items-center">
-                        <input id="terlama" type="checkbox" value="terlama"
-                            class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                        <label for="terlama" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Terlama
-                        </label>
-                    </li>
-                </ul>
-                <h6 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Status
-                </h6>
-                <ul class="space-y-2 text-sm mb-2" aria-labelledby="dropdownDefault">
-                    <li class="flex items-center">
-                        <input id="aktif" type="checkbox" value="aktif"
-                            class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                        <label for="aktif" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Aktif
-                        </label>
-                    </li>
-                    <li class="flex items-center">
-                        <input id="nonaktif" type="checkbox" value="nonaktif"
-                            class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                        <label for="nonaktif" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Nonaktif
-                        </label>
-                    </li>
-                    <li class="flex items-center">
-                        <input id="diskon" type="checkbox" value="diskon"
-                            class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                        <label for="diskon" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            Diskon
-                        </label>
-                    </li>
-                </ul>
-                <h6 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Pajak
-                </h6>
-                <ul class="space-y-2 text-sm mb-2" aria-labelledby="dropdownDefault">
-                    @foreach ($pajaks as $pajak)
-                        <li class="flex items-center">
-                            <input id="pajak-{{ $pajak->id }}" type="checkbox" value="{{ $pajak->id }}"
-                                class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                            <label for="pajak-{{ $pajak->id }}"
-                                class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $pajak->nama }}
-                            </label>
-                        </li>
-                    @endforeach
-                </ul>
-                <h6 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    Kategori
-                </h6>
-                <ul class="space-y-2 text-sm mb-2" aria-labelledby="dropdownDefault">
-                    @foreach ($kategoris as $kategori)
-                        <li class="flex items-center">
-                            <input id="kategori-{{ $kategori->id }}" type="checkbox" value="{{ $kategori->id }}"
-                                class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" />
-                            <label for="kategori-{{ $kategori->id }}"
-                                class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {{ $kategori->nama }}
-                            </label>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
+            <x-master-filter :filterGroups="[
+                'Urutkan' => [['kode' => 'terbaru', 'nama' => 'Terbaru'], ['kode' => 'terlama', 'nama' => 'Terlama']],
+                'Status' => [
+                    ['kode' => 'active', 'nama' => 'Aktif'],
+                    ['kode' => 'inactive', 'nama' => 'Nonaktif'],
+                    ['kode' => 'deleted', 'nama' => 'Dihapus'],
+                ],
+                'Pajak' => $pajaks->map(fn($pajak) => ['kode' => $pajak->id, 'nama' => $pajak->nama])->toArray(),
+                'Kategori' => $kategoris
+                    ->map(fn($kategori) => ['kode' => $kategori->id, 'nama' => $kategori->nama])
+                    ->toArray(),
+            ]" />
+
+            <script>
+                function handleStatusFilterChange() {
+                    const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
+
+                    const editAction = document.getElementById('editAction');
+                    const deleteAction = document.getElementById('deleteAction');
+                    const restoreAction = document.getElementById('restoreAction');
+                    const forceDeleteAction = document.getElementById('forceDeleteAction');
+
+                    if (selectedStatus === 'deleted') {
+                        editAction.classList.add('hidden');
+                        deleteAction.classList.add('hidden');
+                        restoreAction.classList.remove('hidden');
+                        forceDeleteAction.classList.remove('hidden');
+                    } else {
+                        editAction.classList.remove('hidden');
+                        deleteAction.classList.remove('hidden');
+                        restoreAction.classList.add('hidden');
+                        forceDeleteAction.classList.add('hidden');
+                    }
+                }
+
+                // Panggil fungsi pas filter berubah
+                document.querySelectorAll('.filter-input').forEach(input => {
+                    input.addEventListener('click', function() {
+                        const allInputs = document.querySelectorAll('.filter-input');
+
+                        // Uncheck semua input kecuali yang diklik
+                        allInputs.forEach(i => i.checked = false);
+
+                        // Toggle hanya yang diklik (kalau sebelumnya unchecked, jadi checked)
+                        this.checked = !this.checked;
+
+                        handleStatusFilterChange(); // Panggil ulang biar tombol update
+                    });
+                });
+
+                // Panggil juga saat pertama load
+                handleStatusFilterChange();
+            </script>
         </div>
     </div>
 </div>

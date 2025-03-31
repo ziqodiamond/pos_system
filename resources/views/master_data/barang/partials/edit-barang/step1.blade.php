@@ -11,11 +11,11 @@
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             required />
     </div>
-    <div x-data="dropdownEdit('kategori')" x-init="init()" class="mb-4">
+    <div x-data="dropdownEdit('kategori', '{{ $item->kategori?->id }}')" x-init="init()" class="mb-4">
         <label for="kategori" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Kategori</label>
         <div class="relative">
             <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()" autocomplete="off"
-                placeholder="Cari Kategori..." value="{{ $item->kategori->nama }}"
+                placeholder="{{ $item->kategori?->nama ?? 'Cari Kategori...' }}"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
             <ul x-show="open" @click.outside="close()" x-cloak
                 class="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto">
@@ -25,8 +25,7 @@
                     </li>
                 </template>
             </ul>
-            <input type="hidden" name="kategori_id" value="{{ $item->kategori->id }}" :value="selected.id">
-
+            <input type="hidden" name="kategori_id" :value="selectedKategoriId">
         </div>
     </div>
 

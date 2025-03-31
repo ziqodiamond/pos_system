@@ -33,6 +33,8 @@ class CustomerController extends Controller
             $query->where('status', $request->Status);
         }
 
+
+
         // Sortir dengan default 'terbaru'
         $sortOrder = $request->get('Urutkan', 'terbaru');
         if (in_array($sortOrder, ['terbaru', 'terlama'])) {

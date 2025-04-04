@@ -20,12 +20,12 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained('users');
             $table->text('deskripsi')->nullable();
             $table->unsignedBigInteger('subtotal');
-            $table->enum('diskon_mode', ['persen', 'nominal']);
+            $table->enum('diskon_mode', ['persen', 'nominal'])->default('persen');
             $table->unsignedBigInteger('diskon_value');
-            $table->foreignUuid('pajak_id')->constrained('pajaks')->restrictOnDelete();
             $table->unsignedBigInteger('pajak_value');
             $table->unsignedBigInteger('biaya_lainnya');
             $table->unsignedBigInteger('total');
+            $table->enum('status', ['processing', 'received', 'completed'])->default('processing');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -15,15 +15,15 @@ return new class extends Migration
     {
         Schema::create('faktur_pembelians', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('pembelian_id')->constrained('pembelians');
+            $table->foreignUuid('pembelian_id')->constrained('pembelians')->cascadeOnDelete();
+            $table->foreignUuid('supplier_id')->constrained('suppliers')->restrictOnDelete();
             $table->string('no_faktur');
             $table->date('tanggal_faktur');
             $table->text('deskripsi')->nullable();
             $table->unsignedBigInteger('subtotal');
             $table->unsignedBigInteger('biaya_lainnya');
-            $table->enum('diskon_mode', ['persen', 'nominal']);
+            $table->enum('diskon_mode', ['persen', 'nominal'])->default('persen');
             $table->unsignedBigInteger('diskon_value');
-            $table->foreignUuid('pajak_id')->constrained('pajaks')->restrictOnDelete();
             $table->unsignedBigInteger('pajak_value');
             $table->unsignedBigInteger('total_tagihan');
             $table->unsignedBigInteger('total_bayar');

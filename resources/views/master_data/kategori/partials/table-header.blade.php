@@ -100,8 +100,8 @@
                                         Status:</label>
                                     <select id="status" name="status" x-model="selectedStatus"
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-600 dark:text-white">
-                                        <option value="aktif">Aktif</option>
-                                        <option value="nonaktif">Nonaktif</option>
+                                        <option value="active">Aktif</option>
+                                        <option value="inactive">Nonaktif</option>
                                     </select>
                                 </div>
                             </template>
@@ -125,8 +125,8 @@
             <x-master-filter :filterGroups="[
                 'Urutkan' => [['kode' => 'terbaru', 'nama' => 'Terbaru'], ['kode' => 'terlama', 'nama' => 'Terlama']],
                 'Status' => [
-                    ['kode' => 'aktif', 'nama' => 'Aktif'],
-                    ['kode' => 'nonaktif', 'nama' => 'Nonaktif'],
+                    ['kode' => 'active', 'nama' => 'Aktif'],
+                    ['kode' => 'inactive', 'nama' => 'Nonaktif'],
                     ['kode' => 'deleted', 'nama' => 'Dihapus'],
                 ],
             ]" />

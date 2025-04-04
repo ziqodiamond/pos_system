@@ -22,6 +22,11 @@
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                 </div>
                 <div>
+                    <label for="npwp" class="block text-sm font-medium text-gray-700">NPWP</label>
+                    <input type="text" name="npwp" id="npwp"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
                     <label for="nama" class="block text-sm font-medium text-gray-700">Nama</label>
                     <input type="text" name="nama" id="nama"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">

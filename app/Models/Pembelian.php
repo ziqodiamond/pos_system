@@ -25,10 +25,10 @@ class Pembelian extends Model
         'subtotal',
         'diskon_mode',
         'diskon_value',
-        'pajak_id',
         'pajak_value',
         'biaya_lainnya',
         'total',
+        'status',
     ];
 
     public function supplier()

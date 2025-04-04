@@ -20,11 +20,16 @@ class DetailPembelian extends Model
         'barang_id',
         'kuantitas',
         'satuan_id',
+        'satuan_dasar_id',
         'harga_satuan',
-        'subtotal',
-        'pajak_id',
+        'harga_diskon',
+        'other_cost',
+        'diskon_value',
         'pajak_value',
+        'subtotal',
+        'total',
         'stok',
+        'status',
     ];
 
     public function pembelian()
@@ -39,8 +44,8 @@ class DetailPembelian extends Model
     {
         return $this->belongsTo(Satuan::class);
     }
-    public function pajak()
+    public function satuanDasar()
     {
-        return $this->belongsTo(Pajak::class);
+        return $this->belongsTo(Satuan::class, 'satuan_dasar_id');
     }
 }

@@ -17,11 +17,16 @@ return new class extends Migration
             $table->foreignUuid('barang_id')->constrained('barangs');
             $table->unsignedInteger('kuantitas');
             $table->foreignUuid('satuan_id')->constrained('satuans')->restrictOnDelete();
-            $table->unsignedBigInteger('harga_satuan');
-            $table->unsignedBigInteger('subtotal');
-            $table->foreignUuid('pajak_id')->constrained('pajaks')->restrictOnDelete();
+            $table->foreignUuid('satuan_dasar_id')->constrained('satuans')->restrictOnDelete();
+            $table->unsignedBigInteger('harga_satuan')->default(0);
+            $table->unsignedBigInteger('harga_diskon')->default(0);
+            $table->unsignedBigInteger('other_cost')->default(0);
+            $table->unsignedBigInteger('diskon_value')->default(0);
             $table->unsignedBigInteger('pajak_value');
+            $table->unsignedBigInteger('subtotal');
+            $table->unsignedBigInteger('total');
             $table->unsignedInteger('stok');
+            $table->enum('status', ['processing', 'received', 'completed'])->default('processing');
             $table->timestamps();
         });
     }

@@ -1,4 +1,4 @@
-<x-master-table :route="'supplier'" :items="$supplier" :columns="['Kode', 'Nama', 'Alamat', 'Kota', 'Kontak', 'Email', 'Catatan', 'Status']">
+<x-master-table :route="'supplier'" :items="$supplier" :columns="['Kode', 'NPWP', 'Nama', 'Alamat', 'Kota', 'Kontak', 'Email', 'Catatan', 'Status']">
     @forelse ($supplier as $item)
         <tr
             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -11,6 +11,7 @@
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                 {{ $item->kode }}
             </th>
+            <td class="px-6 py-4">{{ $item->npwp }}</td>
             <td class="px-6 py-4">{{ $item->nama }}</td>
             <td class="px-6 py-4">{{ $item->alamat }}</td>
             <td class="px-6 py-4">{{ $item->kota }}</td>
@@ -63,6 +64,12 @@
                                     <label for="kode" class="block text-sm font-medium text-gray-700">Kode</label>
                                     <input type="text" name="kode" id="kode"
                                         value="{{ old('kode', $item->kode ?? '') }}"
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                </div>
+                                <div>
+                                    <label for="npwp" class="block text-sm font-medium text-gray-700">NPWP</label>
+                                    <input type="text" name="npwp" id="npwp"
+                                        value="{{ old('npwp', $item->npwp ?? '') }}"
                                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                                 </div>
                                 <div>

@@ -59,6 +59,7 @@ class SupplierController extends Controller
     {
         $request->validate([
             'kode' => 'required|unique:suppliers',
+            'npwp' => 'nullable|unique:suppliers',
             'nama' => 'required',
             'alamat' => 'required',
             'kota' => 'required',
@@ -69,6 +70,7 @@ class SupplierController extends Controller
 
         $supplier = new Supplier();
         $supplier->kode = $request->kode;
+        $supplier->npwp = $request->npwp;
         $supplier->nama = $request->nama;
         $supplier->alamat = $request->alamat;
         $supplier->kota = $request->kota;
@@ -85,6 +87,7 @@ class SupplierController extends Controller
     {
         $request->validate([
             'kode' => 'required|unique:suppliers,kode,' . $id,
+            'npwp' => 'nullable|unique:suppliers,npwp,' . $id,
             'nama' => 'required',
             'alamat' => 'required',
             'kota' => 'required',
@@ -97,7 +100,7 @@ class SupplierController extends Controller
 
         // Cek perubahan data
         $dataToUpdate = [];
-        $fields = ['kode', 'nama', 'alamat', 'kota', 'kontak', 'email', 'catatan'];
+        $fields = ['kode', 'npwp', 'nama', 'alamat', 'kota', 'kontak', 'email', 'catatan'];
 
         foreach ($fields as $field) {
             if ($request->$field !== $supplier->$field) {
@@ -149,7 +152,7 @@ class SupplierController extends Controller
         $request->validate([
             'action' => 'required|in:edit,delete,restore,forceDelete',
             'selected' => 'required|string',
-            'status' => 'nullable|in:aktif,nonaktif'
+            'status' => 'nullable|in:active,inactive'
         ], [
             'action.required' => 'Aksi wajib dipilih!',
             'action.in' => 'Aksi yang dipilih tidak valid!',

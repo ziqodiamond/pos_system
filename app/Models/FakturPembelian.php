@@ -15,6 +15,7 @@ class FakturPembelian extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'pembelian_id',
         'supplier_id',
         'no_faktur',
         'tanggal_faktur',
@@ -23,7 +24,6 @@ class FakturPembelian extends Model
         'biaya_lainnya',
         'diskon_mode',
         'diskon_value',
-        'pajak_id',
         'pajak_value',
         'total_tagihan',
         'total_bayar',

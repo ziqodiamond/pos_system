@@ -30,7 +30,7 @@ class KategoriController extends Controller
         }
 
         // Filter status
-        if ($request->has('Status') && in_array($request->Status, ['aktif', 'nonaktif'])) {
+        if ($request->has('Status') && in_array($request->Status, ['active', 'inactive'])) {
             $query->where('status', $request->Status);
         }
 
@@ -67,7 +67,7 @@ class KategoriController extends Controller
         $kategori = new Kategori();
         $kategori->kode = $request->kode;
         $kategori->nama = $request->nama;
-        $kategori->status = $request->has('status') ? 'aktif' : 'nonaktif';
+        $kategori->status = $request->has('status') ? 'active' : 'inactive';
         $kategori->save();
 
         return redirect()->back()->with('success', 'Kategori berhasil ditambahkan');
@@ -83,7 +83,7 @@ class KategoriController extends Controller
         $kategori = Kategori::findOrFail($id);
         $kategori->kode = $request->kode;
         $kategori->nama = $request->nama;
-        $kategori->status = $request->has('status') ? 'aktif' : 'nonaktif';
+        $kategori->status = $request->has('status') ? 'active' : 'inactive';
         $kategori->save();
 
         return redirect()->back()->with('success', 'Kategori berhasil diperbarui');
@@ -124,7 +124,7 @@ class KategoriController extends Controller
         $request->validate([
             'action' => 'required|in:edit,delete,restore,forceDelete',
             'selected' => 'required|string',
-            'status' => 'nullable|in:aktif,nonaktif'
+            'status' => 'nullable|in:active,inactive',
         ], [
             'action.required' => 'Aksi wajib dipilih!',
             'action.in' => 'Aksi yang dipilih tidak valid!',

@@ -1,4 +1,4 @@
-<x-master-table :route="'barang'" :items="$barang" :columns="['Kode', 'Nama', 'Kategori', 'Harga Pokok', 'Harga Jual', 'Diskon', 'Pajak', 'Status', 'Stok']">
+<x-master-table :route="'barang'" :items="$barang" :columns="['Kode', 'Nama', 'Kategori', 'Harga Beli', 'Harga Pokok', 'Harga Jual', 'Diskon', 'Pajak', 'Status', 'Stok']">
     @forelse ($barang as $item)
         <tr
             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -17,6 +17,9 @@
             </td>
             <td class="px-6 py-4">
                 {{ $item->kategori->nama }}
+            </td>
+            <td class="px-6 py-4">
+                Rp {{ number_format($item->harga_beli / 100, 2, ',', '.') }}
             </td>
             <td class="px-6 py-4">
                 Rp {{ number_format($item->harga_pokok / 100, 2, ',', '.') }}
@@ -107,14 +110,17 @@
 <script>
     document.addEventListener('alpine:init', () => {
         // Komponen untuk perhitungan harga
-        Alpine.data('priceCalculator', () => ({
+        Alpine.data('priceCalculator', (itemId) => ({
+            // Menyimpan item ID untuk referensi
+            itemId: itemId,
+
             // Objek yang menyimpan semua nilai harga (dalam satuan sen)
             price: {
-                hargaBeli: {{ $item->harga_beli ?? 0 }}, // Harga sudah dalam sen
-                hargaPokok: {{ $item->harga_pokok ?? 0 }}, // Harga sudah dalam sen
-                hargaJual: {{ $item->harga_jual ?? 0 }}, // Harga sudah dalam sen
-                markup: {{ $item->markup ?? 'null' }}, // Gunakan nilai dari database atau null
-                margin: {{ $item->margin ?? 'null' }} // Gunakan nilai dari database atau null
+                hargaBeli: 0, // Akan diisi dari database
+                hargaPokok: 0, // Akan diisi dari database
+                hargaJual: 0, // Akan diisi dari database
+                markup: null, // Gunakan nilai dari database atau null
+                margin: null // Gunakan nilai dari database atau null
             },
 
             // Nilai untuk display (format Rupiah dan persen)
@@ -129,8 +135,19 @@
 
             /**
              * Inisialisasi komponen
+             * Digunakan untuk memuat data berdasarkan item ID
              */
             init() {
+                // Ambil data harga untuk item yang sedang diedit
+                const itemData = globalItemData[this.itemId] || {};
+
+                // Isi data harga dari database
+                this.price.hargaBeli = itemData.harga_beli || 0;
+                this.price.hargaPokok = itemData.harga_pokok || 0;
+                this.price.hargaJual = itemData.harga_jual || 0;
+                this.price.markup = itemData.markup || null;
+                this.price.margin = itemData.margin || null;
+
                 // Konversi nilai sen ke Rupiah untuk display
                 this.formatAllDisplayValues();
 
@@ -238,6 +255,16 @@
                 if (field !== 'hargaBeli') {
                     this.recalculateAll();
                 }
+
+                // Hitung ulang diskon jika diskonCalculator ada
+                this.$nextTick(() => {
+                    // Cari komponen diskonCalculator dengan itemId yang sama
+                    const diskonComponent = document.querySelector(
+                        `[x-data="diskonCalculator('${this.itemId}')"]`);
+                    if (diskonComponent && diskonComponent.__x) {
+                        diskonComponent.__x.getUnobservedData().hitungDiskon();
+                    }
+                });
             },
 
             /**
@@ -344,6 +371,15 @@
                         const profit = hargaJual - hargaPokok;
                         this.price.margin = ((profit / hargaJual) * 100).toFixed(2);
                         this.displayMargin = this.formatPercentage(this.price.margin);
+
+                        // Update diskon calculator jika ada
+                        this.$nextTick(() => {
+                            const diskonComponent = document.querySelector(
+                                `[x-data="diskonCalculator('${this.itemId}')"]`);
+                            if (diskonComponent && diskonComponent.__x) {
+                                diskonComponent.__x.getUnobservedData().hitungDiskon();
+                            }
+                        });
                     }
                 } finally {
                     this.isUpdating = false;
@@ -385,6 +421,15 @@
                         const profit = hargaJual - hargaPokok;
                         this.price.markup = ((profit / hargaPokok) * 100).toFixed(2);
                         this.displayMarkup = this.formatPercentage(this.price.markup);
+
+                        // Update diskon calculator jika ada
+                        this.$nextTick(() => {
+                            const diskonComponent = document.querySelector(
+                                `[x-data="diskonCalculator('${this.itemId}')"]`);
+                            if (diskonComponent && diskonComponent.__x) {
+                                diskonComponent.__x.getUnobservedData().hitungDiskon();
+                            }
+                        });
                     }
                 } finally {
                     this.isUpdating = false;
@@ -402,16 +447,24 @@
         }));
 
         // Komponen untuk mengelola diskon dan efeknya
-        Alpine.data('diskonCalculator', () => ({
-            diskonPersen: {{ $item->diskon_value ?? '0' }},
-            displayDiskonPersen: '{{ number_format($item->diskon_value ?? 0, 2, ',', '.') }}',
-            diskonNominal: {{ $item->diskon_nominal ?? 0 }}, // Ambil dari database jika tersedia
+        Alpine.data('diskonCalculator', (itemId) => ({
+            itemId: itemId,
+            diskonPersen: 0,
+            displayDiskonPersen: '0,00',
+            diskonNominal: 0,
             hargaSetelahDiskon: 0,
             marginSetelahDiskon: 0,
             markupSetelahDiskon: 0,
 
             init() {
-                // Konversi diskon nominal dari sen ke format Rupiah
+                // Ambil data diskon untuk item yang sedang diedit
+                const itemData = globalItemData[this.itemId] || {};
+
+                // Isi data diskon dari database
+                this.diskonPersen = itemData.diskon_value || 0;
+                this.displayDiskonPersen = this.formatPercentage(this.diskonPersen);
+
+                // Hitung diskon pada inisialisasi
                 this.$nextTick(() => {
                     this.hitungDiskon();
                 });
@@ -435,15 +488,17 @@
             },
 
             hitungDiskon() {
-                // Dapatkan nilai dari komponen priceCalculator
-                const priceComponent = this.$root.querySelector('[x-data="priceCalculator"]').__x
-                    .getUnobservedData();
+                // Dapatkan nilai dari komponen priceCalculator dengan ID yang sama
+                const priceComponent = document.querySelector(
+                    `[x-data="priceCalculator('${this.itemId}')"]`);
 
-                if (!priceComponent) return;
+                if (!priceComponent || !priceComponent.__x) return;
 
-                // Ambil nilai harga jual dan harga pokok langsung dari komponen
-                let hargaJual = priceComponent.price.hargaJual || 0;
-                let hargaPokok = priceComponent.price.hargaPokok || 0;
+                const priceData = priceComponent.__x.getUnobservedData();
+
+                // Ambil nilai harga jual dan harga pokok dari komponen
+                let hargaJual = priceData.price.hargaJual || 0;
+                let hargaPokok = priceData.price.hargaPokok || 0;
 
                 // Hitung nominal diskon
                 const diskonPersenFloat = parseFloat(this.diskonPersen);
@@ -458,7 +513,7 @@
 
                     // Hitung margin setelah diskon (dengan presisi 2 desimal)
                     this.marginSetelahDiskon = (profitSetelahDiskon / this.hargaSetelahDiskon) *
-                        100;
+                    100;
 
                     // Hitung markup setelah diskon (jika harga pokok > 0)
                     if (hargaPokok > 0) {

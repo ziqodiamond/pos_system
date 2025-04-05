@@ -15,7 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('pembelian_id')->constrained('pembelians')->cascadeOnDelete();
             $table->foreignUuid('barang_id')->constrained('barangs');
-            $table->unsignedInteger('kuantitas');
+            $table->unsignedInteger('qty_user'); //kuantitaas yg di input user
+            $table->unsignedInteger('qty_base');  //kuantitas yg udh dikonversi
             $table->foreignUuid('satuan_id')->constrained('satuans')->restrictOnDelete();
             $table->foreignUuid('satuan_dasar_id')->constrained('satuans')->restrictOnDelete();
             $table->unsignedBigInteger('harga_satuan')->default(0);

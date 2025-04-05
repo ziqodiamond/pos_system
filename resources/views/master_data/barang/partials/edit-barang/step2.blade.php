@@ -1,11 +1,12 @@
 <div class="grid grid-cols-2 gap-4">
     <!-- Kolom Kiri (Harga) -->
-    <div x-data="priceCalculator">
+    <div x-data="priceCalculator('{{ $item->id }}')">
         <!-- Harga Beli -->
-        <label for="harga_beli" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga Beli</label>
+        <label for="harga_beli_{{ $item->id }}"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga Beli</label>
         <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
-            <input type="text" id="display_harga_beli" x-model="displayHargaBeli"
+            <input type="text" id="display_harga_beli_{{ $item->id }}" x-model="displayHargaBeli"
                 x-on:blur="formatCurrencyInput('hargaBeli')"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
@@ -13,11 +14,12 @@
         </div>
 
         <!-- Harga Pokok -->
-        <label for="harga_pokok" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
+        <label for="harga_pokok_{{ $item->id }}"
+            class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
             Pokok</label>
         <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
-            <input type="text" id="display_harga_pokok" x-model="displayHargaPokok"
+            <input type="text" id="display_harga_pokok_{{ $item->id }}" x-model="displayHargaPokok"
                 x-on:blur="formatCurrencyInput('hargaPokok')" @input="recalculateAll()"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
@@ -25,11 +27,12 @@
         </div>
 
         <!-- Harga Jual -->
-        <label for="harga_jual" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
+        <label for="harga_jual_{{ $item->id }}"
+            class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
             Jual</label>
         <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
-            <input type="text" id="display_harga_jual" x-model="displayHargaJual"
+            <input type="text" id="display_harga_jual_{{ $item->id }} x-model="displayHargaJual"
                 x-on:blur="formatCurrencyInput('hargaJual')" @input="calculateFromHargaJual()"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
@@ -37,12 +40,13 @@
         </div>
 
         <!-- Markup (%) -->
-        <label for="markup" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <label for="markup_{{ $item->id }}"
+            class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Markup (%) <span class="text-xs text-gray-500">(Laba/HPP*100)</span>
         </label>
         <div class="relative">
-            <input type="text" id="markup" x-model="displayMarkup" @input="updateHargaJualFromMarkup()"
-                @blur="formatPercentageInput('markup')"
+            <input type="text" id="markup_{{ $item->id }}" x-model="displayMarkup"
+                @input="updateHargaJualFromMarkup()" @blur="formatPercentageInput('markup')"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <span class="absolute right-3 top-2.5">%</span>
@@ -50,12 +54,13 @@
         </div>
 
         <!-- Margin Keuntungan (%) -->
-        <label for="margin" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">
+        <label for="margin_{{ $item->id }}"
+            class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">
             Margin (%) <span class="text-xs text-gray-500">(Laba/Harga Jual*100)</span>
         </label>
         <div class="relative">
-            <input type="text" id="margin" x-model="displayMargin" @input="updateHargaJualFromMargin()"
-                @blur="formatPercentageInput('margin')"
+            <input type="text" id="margin_{{ $item->id }}" x-model="displayMargin"
+                @input="updateHargaJualFromMargin()" @blur="formatPercentageInput('margin')"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <span class="absolute right-3 top-2.5">%</span>
@@ -119,11 +124,12 @@
         </div>
 
         <!-- Diskon Field dengan informasi tambahan -->
-        <div x-data="diskonCalculator">
-            <label for="diskon" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
+        <div x-data="diskonCalculator('{{ $item->id }}')">
+            <label for="diskon_{{ $item->id }}"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
                 (%)</label>
-            <input type="text" id="diskon_display" x-model="displayDiskonPersen" @input="hitungDiskon()"
-                @blur="formatPercentageInput()"
+            <input type="text" id="diskon_display_{{ $item->id }}" x-model="displayDiskonPersen"
+                @input="hitungDiskon()" @blur="formatPercentageInput()"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <input type="hidden" name="diskon" x-model="diskonPersen" />

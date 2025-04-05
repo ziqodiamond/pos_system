@@ -209,7 +209,7 @@
                         case 'barang':
                             this.formData.items[index].barang_id = item.id;
                             this.formData.items[index].barang_nama = item.nama;
-                            this.formData.items[index].hargaSatuan = item.harga_beli || 0;
+                            this.formData.items[index].hargaSatuan = item.harga_beli / 100 || 0;
                             this.formData.items[index].pajak_id = item.pajak_id || null;
                             // Reset satuan yang terpilih jika barang berubah
                             this.formData.items[index].satuan_dasar_id = item.satuan_id;
@@ -323,19 +323,25 @@
                         barang_id: '',
                         barang_nama: '',
                         jumlah: 0,
+                        jumlah_efektif: 0, // Field baru: jumlah setelah konversi
                         satuan_id: '',
                         satuan_nama: '',
                         satuan_dasar_id: null,
                         status_satuan: '',
                         hargaSatuan: 0,
                         harga_tanpa_pajak: 0, // Harga satuan tanpa pajak
+                        harga_diskon: 0, // Field baru: harga setelah diskon satuan
+                        harga_pokok: 0, // Field baru: harga_diskon + other_cost + nilai_pajak
+                        other_cost: 0, // Field baru: biaya lain yg sudah di alokasikan ke setiap item
                         pajak_id: '',
                         nilai_pajak: 0, // Nilai pajak per satuan
                         total_nilai_pajak: 0, // Total nilai pajak untuk item ini
+                        nilai_diskon: 0, // Field baru: nilai diskon per satuan item
                         diskon_per_item: 0, // Diskon yang dialokasikan per item
-                        harga_setelah_diskon: 0, // Harga setelah diskon tanpa pajak
+                        harga_setelah_diskon: 0, // Harga setelah diskon tanpa pajak (total)
                         subtotal: 0, // Subtotal item tanpa pajak (jumlah * harga_tanpa_pajak)
-                        total: 0 // Total akhir item termasuk pajak jika include_pajak=true
+                        total: 0, // Total akhir item termasuk pajak jika include_pajak=true
+                        grandTotalItem: 0 // Field baru: harga pokok * jumlah efektif
                     }],
                     biayaLain: 0,
                     diskon: 0,
@@ -358,19 +364,25 @@
                         barang_id: '',
                         barang_nama: '',
                         jumlah: 0,
+                        jumlah_efektif: 0, // Tambahkan field baru
                         satuan_id: '',
                         satuan_nama: '',
                         satuan_dasar_id: null,
                         status_satuan: '',
                         hargaSatuan: 0,
                         harga_tanpa_pajak: 0,
+                        harga_diskon: 0, // Tambahkan field baru
+                        harga_pokok: 0, // Tambahkan field baru
+                        other_cost: 0, // Tambahkan field baru
                         pajak_id: '',
                         nilai_pajak: 0,
                         total_nilai_pajak: 0,
+                        nilai_diskon: 0, // Tambahkan field baru
                         diskon_per_item: 0,
                         harga_setelah_diskon: 0,
                         subtotal: 0,
-                        total: 0
+                        total: 0,
+                        grandTotalItem: 0 // Tambahkan field baru
                     });
 
                     // Set fokus ke input barang baru
@@ -447,22 +459,50 @@
                     return 1;
                 },
 
-                // Fungsi untuk format angka
+                // Fungsi untuk format angka dengan support sen
                 formatNumber(value) {
-                    // Hanya memformat untuk tampilan, tidak mengubah nilai asli di model
+                    // Memastikan nilai adalah number
+                    const numValue = this.cleanNumber(value);
+                    // Format dengan 2 desimal untuk sen
                     return new Intl.NumberFormat('id-ID', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
-                    }).format(value);
+                    }).format(numValue);
                 },
 
-                // Fungsi untuk membersihkan format number
+                // Fungsi untuk membersihkan format number dengan support sen
                 cleanNumber(formattedNumber) {
+                    // Jika input kosong atau undefined
+                    if (!formattedNumber && formattedNumber !== 0) {
+                        return 0;
+                    }
+
                     // Menangani format Indonesia (1.234,56) dan mengubahnya menjadi nilai numerik
                     if (typeof formattedNumber === 'string') {
-                        return parseFloat(formattedNumber.replace(/\./g, '').replace(',', '.')) || 0;
+                        // Hapus semua titik sebagai pemisah ribuan
+                        let cleanedStr = formattedNumber.replace(/\./g, '');
+                        // Ganti koma dengan titik untuk desimal
+                        cleanedStr = cleanedStr.replace(',', '.');
+                        // Parse ke float
+                        return parseFloat(cleanedStr) || 0;
                     }
+
+                    // Jika sudah dalam bentuk number
                     return parseFloat(formattedNumber) || 0;
+                },
+
+                // Fungsi untuk konversi nilai display ke nilai database (tanpa simbol, dengan 2 desimal)
+                toDbValue(value) {
+                    // Bersihkan nomor dulu
+                    const numValue = this.cleanNumber(value);
+                    // Kalikan dengan 100 untuk mengubah ke format integer dengan 2 digit desimal
+                    return Math.round(numValue * 100);
+                },
+
+                // Fungsi untuk konversi nilai database ke nilai display
+                fromDbValue(dbValue) {
+                    // Bagi dengan 100 untuk mendapatkan nilai desimal
+                    return dbValue / 100;
                 },
 
                 // Fungsi untuk menghitung harga tanpa pajak untuk setiap item
@@ -499,6 +539,7 @@
 
                     // Jika tidak ada data yang cukup, kembalikan jumlah asli
                     if (!item.barang_id || !item.satuan_id || jumlah <= 0) {
+                        item.jumlah_efektif = jumlah; // Simpan dalam item
                         return jumlah;
                     }
 
@@ -512,6 +553,9 @@
                         );
                         jumlahEfektif = jumlah * nilaiKonversi;
                     }
+
+                    // Simpan jumlah efektif dalam item
+                    item.jumlah_efektif = jumlahEfektif;
 
                     return jumlahEfektif;
                 },
@@ -580,7 +624,10 @@
                         // Reset diskon per item jika tidak ada diskon
                         this.formData.items.forEach(item => {
                             item.diskon_per_item = 0;
+                            item.nilai_diskon = 0; // Reset nilai diskon per satuan
                             item.harga_setelah_diskon = item.subtotal;
+                            item.harga_diskon = item.jumlah_efektif > 0 ? item.harga_setelah_diskon / item
+                                .jumlah_efektif : 0; // Hitung harga diskon satuan
                         });
                         return;
                     }
@@ -590,7 +637,74 @@
                         const proporsi = item.subtotal / subtotal;
                         item.diskon_per_item = totalDiskon * proporsi;
                         item.harga_setelah_diskon = Math.max(0, item.subtotal - item.diskon_per_item);
+
+                        // Hitung nilai diskon per satuan
+                        item.nilai_diskon = item.jumlah_efektif > 0 ? item.diskon_per_item / item.jumlah_efektif :
+                        0;
+
+                        // Hitung harga diskon satuan
+                        item.harga_diskon = item.jumlah_efektif > 0 ? item.harga_setelah_diskon / item
+                            .jumlah_efektif : 0;
                     });
+                },
+
+                // Fungsi untuk mengalokasikan biaya lain ke masing-masing item
+                distributeOtherCostToItems() {
+                    const biayaLain = this.cleanNumber(this.formData.biayaLain) || 0;
+
+                    if (biayaLain <= 0) {
+                        // Reset other_cost jika tidak ada biaya lain
+                        this.formData.items.forEach(item => {
+                            item.other_cost = 0;
+                        });
+                        return;
+                    }
+
+                    // Dapatkan total jumlah efektif
+                    let totalJumlahEfektif = 0;
+                    this.formData.items.forEach(item => {
+                        totalJumlahEfektif += item.jumlah_efektif;
+                    });
+
+                    if (totalJumlahEfektif <= 0) {
+                        // Reset other_cost jika total jumlah efektif nol
+                        this.formData.items.forEach(item => {
+                            item.other_cost = 0;
+                        });
+                        return;
+                    }
+
+                    // Alokasikan biaya lain secara proporsional berdasarkan jumlah efektif
+                    this.formData.items.forEach(item => {
+                        const proporsi = item.jumlah_efektif / totalJumlahEfektif;
+                        const totalOtherCost = biayaLain * proporsi;
+
+                        // Other cost per satuan
+                        item.other_cost = item.jumlah_efektif > 0 ? totalOtherCost / item.jumlah_efektif : 0;
+                    });
+                },
+
+                // Fungsi untuk menghitung harga pokok per satuan untuk setiap item
+                calculateItemPrimePrice(index) {
+                    const item = this.formData.items[index];
+
+                    // Harga pokok = harga diskon + other cost + nilai pajak
+                    item.harga_pokok = item.harga_diskon + item.other_cost + item.nilai_pajak;
+
+                    return item.harga_pokok;
+                },
+
+                // Fungsi untuk menghitung grand total item
+                calculateGrandTotalItem(index) {
+                    const item = this.formData.items[index];
+
+                    // Hitung harga pokok terlebih dahulu
+                    this.calculateItemPrimePrice(index);
+
+                    // Grand total item = harga pokok * jumlah efektif
+                    item.grandTotalItem = item.harga_pokok * item.jumlah_efektif;
+
+                    return item.grandTotalItem;
                 },
 
                 // Fungsi untuk menghitung subtotal setelah diskon
@@ -624,7 +738,7 @@
                     }
 
                     const persenPajak = parseFloat(pajak.persen);
-                    const jumlahEfektif = this.calculateEffectiveQuantity(index);
+                    const jumlahEfektif = item.jumlah_efektif; // Gunakan jumlah efektif yang sudah disimpan
 
                     // Hitung nilai pajak berdasarkan harga setelah diskon
                     const nilaiPajakPerSatuan = (item.harga_setelah_diskon / jumlahEfektif) * (persenPajak / 100);
@@ -662,11 +776,8 @@
                     // Hitung biaya lain yang bersih
                     const biayaLain = this.cleanNumber(this.formData.biayaLain) || 0;
 
-
                     // Jika harga belum termasuk pajak, grand total adalah subtotal setelah diskon + total pajak + biaya lain
-                    this.formData.grandTotal = this.formData.subtotalSetelahDiskon + this.formData.totalPajak +
-                        biayaLain;
-
+                    this.formData.grandTotal = this.formData.subtotalSetelahDiskon + this.formData.totalPajak + biayaLain;
 
                     return this.formData.grandTotal;
                 },
@@ -680,30 +791,42 @@
 
                 // Fungsi utama untuk melakukan semua perhitungan
                 calculateTotal() {
-                    // 1. Hitung subtotal sebelum diskon (harga tanpa pajak)
-                    this.calculateSubtotalBeforeDiscount();
-
-                    // 2. Hitung total diskon
-                    this.calculateTotalDiscount();
-
-                    // 3. Alokasikan diskon ke masing-masing item
-                    this.distributeDiscountToItems();
-
-                    // 4. Hitung subtotal setelah diskon
-                    this.calculateSubtotalAfterDiscount();
-
-                    // 5. Hitung pajak untuk setiap item
-                    this.calculateTotalTax();
-
-                    // 6. Hitung total akhir setiap item (termasuk pajak)
+                    // 1. Hitung jumlah efektif untuk setiap item
                     this.formData.items.forEach((item, index) => {
-                        this.calculateItemTotal(index);
+                        this.calculateEffectiveQuantity(index);
                     });
 
-                    // 7. Hitung grand total
+                    // 2. Hitung subtotal sebelum diskon (harga tanpa pajak)
+                    this.calculateSubtotalBeforeDiscount();
+
+                    // 3. Hitung total diskon
+                    this.calculateTotalDiscount();
+
+                    // 4. Alokasikan diskon ke masing-masing item
+                    this.distributeDiscountToItems();
+
+                    // 5. Alokasikan biaya lain ke masing-masing item
+                    this.distributeOtherCostToItems();
+
+                    // 6. Hitung subtotal setelah diskon
+                    this.calculateSubtotalAfterDiscount();
+
+                    // 7. Hitung pajak untuk setiap item
+                    this.calculateTotalTax();
+
+                    // 8. Hitung total akhir setiap item (termasuk pajak)
+                    this.formData.items.forEach((item, index) => {
+                        this.calculateItemTotal(index);
+
+                        // 9. Hitung harga pokok dan grand total item
+                        this.calculateItemPrimePrice(index);
+                        this.calculateGrandTotalItem(index);
+                    });
+
+                    // 10. Hitung grand total
                     this.calculateGrandTotal();
 
-                    // 8. Hitung sisa pembayaran
+                    // 11. Hitung sisa pembayaran
                     this.calculateRemaining();
 
                     console.log("Perhitungan selesai:", {
@@ -752,6 +875,10 @@
                     // Generate nomor referensi default
                     this.formData.noReferensi = 'P' + new Date().getTime().toString().slice(-7);
 
+                    // Mengkonversi semua nilai dari format database ke format display pada inisialisasi
+                    // Ini untuk kasus edit data yang sudah ada
+                    this.convertAllDbValuesToDisplay();
+
                     // Setup event listener untuk submit form
                     this.$watch('formData', () => {
                         this.calculateTotal();
@@ -762,6 +889,83 @@
                     // Hitung total saat awal
                     this.calculateTotal();
                 },
+
+                // Fungsi untuk mengkonversi semua nilai dari database ke display
+                convertAllDbValuesToDisplay() {
+                    // Konversi nilai monetar dari database
+                    this.formData.biayaLain = this.fromDbValue(this.formData.biayaLain);
+                    this.formData.uangMuka = this.fromDbValue(this.formData.uangMuka);
+
+                    // Konversi nilai diskon jika bukan persen
+                    if (this.formData.diskonType !== 'persen') {
+                        this.formData.diskon = this.fromDbValue(this.formData.diskon);
+                    }
+
+                    // Konversi nilai di setiap item
+                    this.formData.items.forEach(item => {
+                        item.hargaSatuan = this.fromDbValue(item.hargaSatuan);
+                        // Konversi nilai baru jika ada
+                        if (item.harga_diskon) item.harga_diskon = this.fromDbValue(item.harga_diskon);
+                        if (item.harga_pokok) item.harga_pokok = this.fromDbValue(item.harga_pokok);
+                        if (item.other_cost) item.other_cost = this.fromDbValue(item.other_cost);
+                        if (item.nilai_diskon) item.nilai_diskon = this.fromDbValue(item.nilai_diskon);
+                        if (item.grandTotalItem) item.grandTotalItem = this.fromDbValue(item.grandTotalItem);
+                    });
+                },
+
+                // Fungsi untuk mempersiapkan data sebelum submit
+                prepareForSubmit() {
+                    // Konversi semua nilai uang ke format database
+                    const formDataForSubmit = JSON.parse(JSON.stringify(this.formData));
+
+                    // Konversi nilai moneter utama
+                    formDataForSubmit.biayaLain = this.toDbValue(formDataForSubmit.biayaLain);
+                    formDataForSubmit.uangMuka = this.toDbValue(formDataForSubmit.uangMuka);
+                    formDataForSubmit.grandTotal = this.toDbValue(formDataForSubmit.grandTotal);
+                    formDataForSubmit.sisa = this.toDbValue(formDataForSubmit.sisa);
+                    formDataForSubmit.totalPajak = this.toDbValue(formDataForSubmit.totalPajak);
+                    formDataForSubmit.subtotalSebelumDiskon = this.toDbValue(formDataForSubmit.subtotalSebelumDiskon);
+                    formDataForSubmit.subtotalSetelahDiskon = this.toDbValue(formDataForSubmit.subtotalSetelahDiskon);
+
+                    // Konversi diskon jika bukan persen
+                    if (formDataForSubmit.diskonType !== 'persen') {
+                        formDataForSubmit.diskon = this.toDbValue(formDataForSubmit.diskon);
+                    }
+                    formDataForSubmit.totalDiskon = this.toDbValue(formDataForSubmit.totalDiskon);
+
+                    // Konversi setiap item
+                    formDataForSubmit.items.forEach(item => {
+                        item.hargaSatuan = this.toDbValue(item.hargaSatuan);
+                        item.harga_tanpa_pajak = this.toDbValue(item.harga_tanpa_pajak);
+                        item.nilai_pajak = this.toDbValue(item.nilai_pajak);
+                        item.total_nilai_pajak = this.toDbValue(item.total_nilai_pajak);
+                        item.diskon_per_item = this.toDbValue(item.diskon_per_item);
+                        item.harga_setelah_diskon = this.toDbValue(item.harga_setelah_diskon);
+                        item.subtotal = this.toDbValue(item.subtotal);
+                        item.total = this.toDbValue(item.total);
+
+                        // Konversi field baru
+                        item.harga_diskon = this.toDbValue(item.harga_diskon);
+                        item.harga_pokok = this.toDbValue(item.harga_pokok);
+                        item.other_cost = this.toDbValue(item.other_cost);
+                        item.nilai_diskon = this.toDbValue(item.nilai_diskon);
+                        item.grandTotalItem = this.toDbValue(item.grandTotalItem);
+                    });
+
+                    return formDataForSubmit;
+                },
+
+                // Fungsi untuk melakukan submit form
+                submitForm() {
+                    // Persiapkan data untuk submit
+                    const formDataForSubmit = this.prepareForSubmit();
+
+                    // Isi nilai hidden input untuk pengiriman form
+                    document.getElementById('form_data').value = JSON.stringify(formDataForSubmit);
+
+                    // Submit form
+                    document.getElementById('purchase_form').submit();
+                }
             };
         }
     </script>

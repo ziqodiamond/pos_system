@@ -41,10 +41,9 @@
                         <input type="text"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-2 pl-9 text-right"
                             placeholder="0" x-model.lazy="formData.diskon"
-                            x-on:focus="$event.target.value = formData.diskon"
-                            @blur="$event.target.value = formatNumber(formData.diskon); calculateTotal()"
-                            @input="formData.diskon = cleanNumber($event.target.value); calculateTotal()">
-                        <input type="hidden" name="diskon" x-model="formData.diskon">
+                            x-effect="$el.value = formatNumber(formData.biayaLain)"
+                            @blur="$event.target.value = formatNumber(formData.diskon); calculateTotal()">
+                        <input type="hidden" name="diskon" :value="toDbValue(formData.diskon)">
                     </template>
                 </div>
             </div>
@@ -78,10 +77,10 @@
                     <input type="text"
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-2 pl-9 text-right"
                         placeholder="0" x-model.lazy="formData.biayaLain"
-                        x-on:focus="$event.target.value = formData.biayaLain"
-                        @blur="$event.target.value = formatNumber(formData.biayaLain); calculateTotal()"
-                        @input="formData.biayaLain = cleanNumber($event.target.value); calculateTotal()">
-                    <input type="hidden" name="biaya_lain" x-model="formData.biayaLain">
+                        x-effect="$el.value = formatNumber(formData.biayaLain)"
+                        @blur="$event.target.value = formatNumber(formData.biayaLain); calculateTotal()">
+
+                    <input type="text" name="biaya_lain" :value="toDbValue(formData.biayaLain)">
                 </div>
             </div>
         </div>
@@ -116,10 +115,10 @@
                     <input type="text"
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-2 pl-9 text-right"
                         placeholder="0" x-model.lazy="formData.uangMuka"
-                        x-on:focus="$event.target.value = formData.uangMuka"
-                        @blur="$event.target.value = formatNumber(formData.uangMuka); calculateTotal()"
-                        @input="formData.uangMuka = cleanNumber($event.target.value); calculateTotal()">
-                    <input type="hidden" name="uang_muka" x-model="formData.uangMuka">
+                        x-effect="$el.value = formatNumber(formData.uangMuka)"
+                        @blur="$event.target.value = formatNumber(formData.uangMuka); calculateTotal()">
+
+                    <input type="text" name="uang_muka" :value="toDbValue(formData.uangMuka)">
 
                 </div>
             </div>

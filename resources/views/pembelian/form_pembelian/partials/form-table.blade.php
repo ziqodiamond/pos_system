@@ -83,6 +83,8 @@
                         </div>
                     </div>
                 </td>
+
+                <!-- Input Harga Satuan -->
                 <td class="px-4 py-2">
                     <div class="relative">
                         <span
@@ -90,21 +92,34 @@
                             Rp
                         </span>
                         <input type="text"
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pl-9S text-right"
-                            x-model.lazy="item.hargaSatuan" x-on:focus="$event.target.value = item.hargaSatuan"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pl-9 text-right"
+                            x-model.lazy="item.hargaSatuan" x-effect="$el.value = formatNumber(item.hargaSatuan)"
                             @blur="$event.target.value = formatNumber(item.hargaSatuan); calculateItemTotal(index)"
                             @keydown.down="navigateToNextRow(index)" @keydown.up="navigateToPreviousRow(index)"
-                            placeholder="0" autocomplete="off">
-                        <input type="hidden" :ame="'items[' + index + '][harga_satuan]'" x-model="item.hargaSatuan">
+                            placeholder="0,00" autocomplete="off">
 
+                        <!-- Input hidden untuk menyimpan nilai harga satuan untuk dikirim ke server -->
+                        <input type="text" :name="'items[' + index + '][harga_satuan]'"
+                            :value="toDbValue(item.hargaSatuan)">
+
+                        <input type="text" :name="'items[' + index + '][harga_diskon]'"
+                            :value="toDbValue(item.harga_diskon)">
+
+                        <input type="text" :name="'items[' + index + '][harga_pokok]'"
+                            :value="toDbValue(item.harga_pokok)">
+                        <input type="text" :name="'items[' + index + '][other_cost]'"
+                            :value="toDbValue(item.other_cost)">
+                        <input type="text" :name="'items[' + index + '][diskon_value]'"
+                            :value="toDbValue(item.nilai_diskon)">
                     </div>
                 </td>
                 <td class="px-4 py-2 whitespace-nowrap">
                     <span class="block w-full p-2.5 text-right"
                         x-text="'Rp ' + formatNumber( calculateItemSubtotalDisplay(index))"></span>
-                    <input type="text" :name="'items[' + index + '][total]'" x-model="item.total">
+                    <input type="text" :name="'items[' + index + '][total]'" :value="toDbValue(item.total)">
                     <input type="hidden" :name="'items[' + index + '][pajak_id]'" x-model="item.pajak_id">
-                    <input type="hidden" :name="'items[' + index + '][nilai_pajak]'" x-model="item.nilai_pajak">
+                    <input type="text" :name="'items[' + index + '][nilai_pajak]'"
+                        :value="toDbValue(item.nilai_pajak)">
                 </td>
                 <td class="px-4 py-2 text-center">
                     <button type="button" @click="removeItem(index)" class="text-red-500">

@@ -23,6 +23,7 @@ class DetailPembelian extends Model
         'satuan_dasar_id',
         'harga_satuan',
         'harga_diskon',
+        'harga_pokok',
         'other_cost',
         'diskon_value',
         'pajak_value',

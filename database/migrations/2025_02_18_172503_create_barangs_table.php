@@ -20,7 +20,9 @@ return new class extends Migration
             $table->unsignedBigInteger('harga_beli');
             $table->unsignedBigInteger('harga_pokok');
             $table->unsignedBigInteger('harga_jual');
-            $table->unsignedTinyInteger('diskon_value');
+            $table->decimal('markup', 5, 2);
+            $table->decimal('diskon_value', 5, 2);
+            $table->unsignedTinyInteger('diskon_nominal');
             $table->unsignedTinyInteger('stok_minimum');
             $table->unsignedBigInteger('stok');
             $table->foreignUuid('pajak_id')->constrained()->restrictOnDelete();

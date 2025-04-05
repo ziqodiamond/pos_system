@@ -17,12 +17,16 @@ class DetailPenjualan extends Model
     protected $fillable = [
         'penjualan_id',
         'barang_id',
-        'nama',
+        'nama_barang',
         'harga_satuan',
+        'harga_diskon',
+        'pajak_value',
+        'diskon_value',
+        'diskon_nominal',
         'kuantitas',
         'satuan_id',
         'harga_satuan',
-        'diskon',
+        'total_diskon',
         'pajak',
         'subtotal',
     ];

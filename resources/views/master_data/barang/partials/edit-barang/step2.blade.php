@@ -1,47 +1,72 @@
 <div class="grid grid-cols-2 gap-4">
     <!-- Kolom Kiri (Harga) -->
-    <div>
+    <div x-data="priceCalculator">
+        <!-- Harga Beli -->
         <label for="harga_beli" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga Beli</label>
-        <div class="relative" x-data="{ display: '{{ number_format($item->harga_beli, 0, ',', '.') }}', hidden: '{{ $item->harga_beli }}' }">
+        <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
-            <input type="text" id="display_harga_beli" x-model="display"
-                x-on:input="display = display.replace(/[^0-9]/g, '').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); hidden = display.replace(/\./g, '')"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                min="0" required />
-            <input type="text" id="harga_beli" name="harga_beli" x-model="hidden">
+            <input type="text" id="display_harga_beli" x-model="displayHargaBeli"
+                x-on:blur="formatCurrencyInput('hargaBeli')"
+                class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required />
+            <input type="text" name="harga_beli" x-model="price.hargaBeli" />
         </div>
 
+        <!-- Harga Pokok -->
         <label for="harga_pokok" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
             Pokok</label>
-        <div class="relative" x-data="{ display: '{{ number_format($item->harga_pokok, 0, ',', '.') }}', hidden: '{{ $item->harga_pokok }}' }">
+        <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
-            <input type="text" id="display_harga_pokok" x-model="display"
-                x-on:input="display = display.replace(/[^0-9]/g, '').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); hidden = display.replace(/\./g, '')"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                min="0" required />
-            <input type="text" id="harga_pokok" name="harga_pokok" x-model="hidden">
+            <input type="text" id="display_harga_pokok" x-model="displayHargaPokok"
+                x-on:blur="formatCurrencyInput('hargaPokok')" @input="recalculateAll()"
+                class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required />
+            <input type="hidden" name="harga_pokok" x-model="price.hargaPokok" />
         </div>
 
+        <!-- Harga Jual -->
         <label for="harga_jual" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga
             Jual</label>
-        <div class="relative" x-data="{ display: '{{ number_format($item->harga_jual, 0, ',', '.') }}', hidden: '{{ $item->harga_jual }}' }">
+        <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
-            <input type="text" id="display_harga_jual" x-model="display"
-                x-on:input="display = display.replace(/[^0-9]/g, '').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.'); hidden = display.replace(/\./g, '')"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                min="0" required />
-            <input type="text" id="harga_jual" name="harga_jual" x-model="hidden">
+            <input type="text" id="display_harga_jual" x-model="displayHargaJual"
+                x-on:blur="formatCurrencyInput('hargaJual')" @input="calculateFromHargaJual()"
+                class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required />
+            <input type="hidden" name="harga_jual" x-model="price.hargaJual" />
+        </div>
+
+        <!-- Markup (%) -->
+        <label for="markup" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Markup (%) <span class="text-xs text-gray-500">(Laba/HPP*100)</span>
+        </label>
+        <div class="relative">
+            <input type="text" id="markup" x-model="displayMarkup" @input="updateHargaJualFromMarkup()"
+                @blur="formatPercentageInput('markup')"
+                class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required />
+            <span class="absolute right-3 top-2.5">%</span>
+            <input type="hidden" name="markup" x-model="price.markup" />
+        </div>
+
+        <!-- Margin Keuntungan (%) -->
+        <label for="margin" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            Margin (%) <span class="text-xs text-gray-500">(Laba/Harga Jual*100)</span>
+        </label>
+        <div class="relative">
+            <input type="text" id="margin" x-model="displayMargin" @input="updateHargaJualFromMargin()"
+                @blur="formatPercentageInput('margin')"
+                class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required />
+            <span class="absolute right-3 top-2.5">%</span>
+            <input type="text" name="margin" x-model="price.margin" />
         </div>
     </div>
 
 
-
-
-
-
-
     <!-- Kolom Kanan (Satuan, Pajak, Diskon, Stok) -->
     <div class="space-y-4">
+        <!-- Input pajak (menggunakan dropdownEdit yang sudah ada) -->
         <div x-data="dropdownEdit('pajak', '{{ $item->pajak?->id }}')" x-init="init()">
             <label for="pajak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pajak</label>
             <div class="relative">
@@ -66,12 +91,13 @@
             </div>
         </div>
 
+        <!-- Input satuan (menggunakan dropdownEdit yang sudah ada) -->
         <div x-data="dropdownEdit('satuan', '{{ $item->satuan?->id }}')" x-init="init()">
-            <label for="pajak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pilih
+            <label for="satuan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pilih
                 Satuan</label>
             <div class="relative">
-                <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()" autocomplete="off"
-                    placeholder="{{ $item->satuan?->nama ?? 'Cari Satuan...' }}"
+                <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()"
+                    autocomplete="off" placeholder="{{ $item->satuan?->nama ?? 'Cari Satuan...' }}"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
 
 
@@ -92,14 +118,39 @@
             </div>
         </div>
 
-
-        <div>
+        <!-- Diskon Field dengan informasi tambahan -->
+        <div x-data="diskonCalculator">
             <label for="diskon" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
                 (%)</label>
-            <input type="number" id="diskon" name="diskon" min="0" max="100"
-                value="{{ $item->diskon_value }}"
+            <input type="text" id="diskon_display" x-model="displayDiskonPersen" @input="hitungDiskon()"
+                @blur="formatPercentageInput()"
                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
+            <input type="hidden" name="diskon" x-model="diskonPersen" />
+
+            <!-- Informasi diskon -->
+            <div class="mt-2 space-y-1 text-xs">
+                <p class="text-gray-700 dark:text-gray-300">
+                    <span class="font-medium">Total Diskon:</span>
+                    <span class="text-blue-600 dark:text-blue-400"
+                        x-text="'Rp ' + formatCurrency(diskonNominal / 100)"></span>
+                </p>
+                <p class="text-gray-700 dark:text-gray-300">
+                    <span class="font-medium">Harga Jual Setelah Diskon:</span>
+                    <span class="text-blue-600 dark:text-blue-400"
+                        x-text="'Rp ' + formatCurrency(hargaSetelahDiskon / 100)"></span>
+                </p>
+                <p class="text-gray-700 dark:text-gray-300">
+                    <span class="font-medium">Margin Setelah Diskon:</span>
+                    <span class="text-blue-600 dark:text-blue-400"
+                        x-text="formatPercentage(marginSetelahDiskon) + '%'"></span>
+                </p>
+                <p class="text-gray-700 dark:text-gray-300">
+                    <span class="font-medium">Markup Setelah Diskon:</span>
+                    <span class="text-blue-600 dark:text-blue-400"
+                        x-text="formatPercentage(markupSetelahDiskon) + '%'"></span>
+                </p>
+            </div>
         </div>
 
         <div>
@@ -111,5 +162,4 @@
                 required />
         </div>
     </div>
-
 </div>

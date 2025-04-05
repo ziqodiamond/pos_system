@@ -16,12 +16,10 @@ return new class extends Migration
             $table->string('no_ref');
             $table->foreignUuid('kasir_id')->constrained('users');
             $table->foreignUuid('customer_id')->constrained('customers');
-            $table->unsignedBigInteger('subtotal');
-            $table->enum('diskon_mode', ['persen', 'nominal']);
-            $table->unsignedBigInteger('diskon_value');
-            $table->foreignUuid('pajak_id')->constrained('pajaks')->restrictOnDelete();
-            $table->unsignedBigInteger('pajak_value');
-            $table->unsignedBigInteger('total_tagihan');
+            $table->unsignedBigInteger('subtotal'); //tanpa diskon include pajak
+            $table->unsignedBigInteger('total_diskon'); //total diskon barang
+            $table->unsignedBigInteger('total_pajak'); //total pajak barang
+            $table->unsignedBigInteger('grand_total'); //subtotal - total_dikon
             $table->unsignedBigInteger('total_bayar');
             $table->unsignedBigInteger('kembalian');
             $table->enum('metode_pembayaran', ['tunai', 'debit', 'e-wallet']);

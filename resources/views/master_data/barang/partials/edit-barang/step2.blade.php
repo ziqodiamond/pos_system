@@ -1,6 +1,17 @@
 <div class="grid grid-cols-2 gap-4">
+    @php
+        $itemData = [
+            'harga_beli' => $item->harga_beli,
+            'harga_pokok' => $item->harga_pokok,
+            'harga_jual' => $item->harga_jual,
+            'markup' => $item->markup,
+            'margin' => $item->margin,
+            'diskon_value' => $item->diskon_value,
+        ];
+    @endphp
     <!-- Kolom Kiri (Harga) -->
-    <div x-data="priceCalculator('{{ $item->id }}')">
+    <div x-data="priceCalculator('{{ $item->id }}', @js($itemData))">
+
         <!-- Harga Beli -->
         <label for="harga_beli_{{ $item->id }}"
             class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga Beli</label>
@@ -10,7 +21,8 @@
                 x-on:blur="formatCurrencyInput('hargaBeli')"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
-            <input type="text" name="harga_beli" x-model="price.hargaBeli" />
+            <!-- Perbaikan: mengubah input text menjadi hidden -->
+            <input type="hidden" name="harga_beli" x-model="price.hargaBeli" />
         </div>
 
         <!-- Harga Pokok -->
@@ -32,7 +44,8 @@
             Jual</label>
         <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
-            <input type="text" id="display_harga_jual_{{ $item->id }} x-model="displayHargaJual"
+            <!-- Perbaikan: menambahkan tanda kutip penutup setelah id dan memperbaiki x-model -->
+            <input type="text" id="display_harga_jual_{{ $item->id }}" x-model="displayHargaJual"
                 x-on:blur="formatCurrencyInput('hargaJual')" @input="calculateFromHargaJual()"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
@@ -64,7 +77,8 @@
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <span class="absolute right-3 top-2.5">%</span>
-            <input type="text" name="margin" x-model="price.margin" />
+            <!-- Perbaikan: mengubah input text menjadi hidden -->
+            <input type="hidden" name="margin" x-model="price.margin" />
         </div>
     </div>
 
@@ -123,8 +137,9 @@
             </div>
         </div>
 
+
         <!-- Diskon Field dengan informasi tambahan -->
-        <div x-data="diskonCalculator('{{ $item->id }}')">
+        <div x-data="diskonCalculator('{{ $item->id }}', @js($itemData))">
             <label for="diskon_{{ $item->id }}"
                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
                 (%)</label>

@@ -106,13 +106,15 @@
 
 {{ $barang->links() }}
 
+
 <!-- Script untuk semua fungsi Alpine.js -->
 <script>
     document.addEventListener('alpine:init', () => {
         // Komponen untuk perhitungan harga
-        Alpine.data('priceCalculator', (itemId) => ({
+        Alpine.data('priceCalculator', (itemId, item = {}) => ({
             // Menyimpan item ID untuk referensi
             itemId: itemId,
+            itemData: item ?? {},
 
             // Objek yang menyimpan semua nilai harga (dalam satuan sen)
             price: {
@@ -138,15 +140,12 @@
              * Digunakan untuk memuat data berdasarkan item ID
              */
             init() {
-                // Ambil data harga untuk item yang sedang diedit
-                const itemData = globalItemData[this.itemId] || {};
-
-                // Isi data harga dari database
-                this.price.hargaBeli = itemData.harga_beli || 0;
-                this.price.hargaPokok = itemData.harga_pokok || 0;
-                this.price.hargaJual = itemData.harga_jual || 0;
-                this.price.markup = itemData.markup || null;
-                this.price.margin = itemData.margin || null;
+                // Isi data harga dari database - Perbaikan: menggunakan this.itemData bukan itemData yang tidak terdefinisi
+                this.price.hargaBeli = this.itemData.harga_beli || 0;
+                this.price.hargaPokok = this.itemData.harga_pokok || 0;
+                this.price.hargaJual = this.itemData.harga_jual || 0;
+                this.price.markup = this.itemData.markup || null;
+                this.price.margin = this.itemData.margin || null;
 
                 // Konversi nilai sen ke Rupiah untuk display
                 this.formatAllDisplayValues();
@@ -447,8 +446,9 @@
         }));
 
         // Komponen untuk mengelola diskon dan efeknya
-        Alpine.data('diskonCalculator', (itemId) => ({
+        Alpine.data('diskonCalculator', (itemId, item = {}) => ({
             itemId: itemId,
+            itemData: item ?? {},
             diskonPersen: 0,
             displayDiskonPersen: '0,00',
             diskonNominal: 0,
@@ -457,11 +457,8 @@
             markupSetelahDiskon: 0,
 
             init() {
-                // Ambil data diskon untuk item yang sedang diedit
-                const itemData = globalItemData[this.itemId] || {};
-
-                // Isi data diskon dari database
-                this.diskonPersen = itemData.diskon_value || 0;
+                // Isi data diskon dari database - Perbaikan: menggunakan this.itemData bukan itemData yang tidak terdefinisi
+                this.diskonPersen = this.itemData.diskon_value || 0;
                 this.displayDiskonPersen = this.formatPercentage(this.diskonPersen);
 
                 // Hitung diskon pada inisialisasi
@@ -513,7 +510,7 @@
 
                     // Hitung margin setelah diskon (dengan presisi 2 desimal)
                     this.marginSetelahDiskon = (profitSetelahDiskon / this.hargaSetelahDiskon) *
-                    100;
+                        100;
 
                     // Hitung markup setelah diskon (jika harga pokok > 0)
                     if (hargaPokok > 0) {

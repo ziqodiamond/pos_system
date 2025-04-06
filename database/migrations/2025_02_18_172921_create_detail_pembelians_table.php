@@ -25,6 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('other_cost')->default(0);
             $table->unsignedBigInteger('diskon_value')->default(0); //diskon satuan
             $table->unsignedBigInteger('pajak_value'); //pajak satuan
+            $table->foreignUuid('pajak_id')->nullable()->constrained('pajaks')->restrictOnDelete();
             $table->unsignedBigInteger('subtotal'); // tanpa pajak tanpa diskon (harga_diskon * kuantitas)
             $table->unsignedBigInteger('total'); // dengan pajak, diskon, other cost (harga_pokok * kuantitas)
             $table->unsignedInteger('stok');

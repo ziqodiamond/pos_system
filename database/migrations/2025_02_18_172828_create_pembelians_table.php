@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('no_ref');
             $table->date('tanggal_pembelian');
             $table->date('tanggal_masuk');
-            $table->foreignUuid('supplier_id')->constrained('suppliers');
-            $table->foreignUuid('user_id')->constrained('users');
+            $table->foreignUuid('supplier_id')->nullable()->constrained('suppliers')->onDelete('set null');
+            $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->text('deskripsi')->nullable();
             $table->unsignedBigInteger('subtotal');
             $table->enum('diskon_mode', ['persen', 'nominal'])->default('persen');

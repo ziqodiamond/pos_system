@@ -36,13 +36,14 @@
                     </div>
                 </td>
                 <td class="px-4 py-2">
-                    <input type="text" :name="'items[' + index + '][jumlah]'"
-                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                        x-model="item.jumlah"
+                    <input type="number" :name="'items[' + index + '][jumlah]'"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg text-right focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                        x-model="item.jumlah" autocomplete="off" min="0" @click="$event.target.select()"
                         @input="$el.value = $el.value.replace(/[^0-9]/g, ''); calculateItemTotal(index); calculateTotal()"
                         @keydown.prevent.up="navigateToPreviousRow(index)"
                         @keydown.prevent.down="navigateToNextRow(index)" placeholder="0"
                         :disabled="!getSelectedBarangId(index)">
+                    <input type="hidden" :name="'items[' + index + '][jumlah_efektif]'" x-model="item.jumlah_efektif">
                 </td>
                 <td class="px-4 py-2">
                     <div x-data="dropdown('satuan', index)">
@@ -80,6 +81,8 @@
 
                             <!-- Hidden input untuk menyimpan satuan_id -->
                             <input type="hidden" :name="'items[' + index + '][satuan_id]'" x-model="item.satuan_id">
+                            <input type="hidden" :name="'items[' + index + '][satuan_dasar_id]'"
+                                x-model="item.satuan_dasar_id">
                         </div>
                     </div>
                 </td>
@@ -99,34 +102,36 @@
                             placeholder="0,00" autocomplete="off">
 
                         <!-- Input hidden untuk menyimpan nilai harga satuan untuk dikirim ke server -->
-                        <input type="text" :name="'items[' + index + '][harga_satuan]'"
+                        <input type="hidden" :name="'items[' + index + '][harga_satuan]'"
                             :value="toDbValue(item.hargaSatuan)">
 
-                        <input type="text" :name="'items[' + index + '][harga_diskon]'"
+                        <input type="hidden" :name="'items[' + index + '][harga_diskon]'"
                             :value="toDbValue(item.harga_diskon)">
 
-                        <input type="text" :name="'items[' + index + '][harga_pokok]'"
+                        <input type="hidden" :name="'items[' + index + '][harga_pokok]'"
                             :value="toDbValue(item.harga_pokok)">
-                        <input type="text" :name="'items[' + index + '][other_cost]'"
+                        <input type="hidden" :name="'items[' + index + '][other_cost]'"
                             :value="toDbValue(item.other_cost)">
-                        <input type="text" :name="'items[' + index + '][diskon_value]'"
+                        <input type="hidden" :name="'items[' + index + '][diskon_value]'"
                             :value="toDbValue(item.nilai_diskon)">
+                        <input type="hidden" :name="'items[' + index + '][pajak_value]'"
+                            :value="toDbValue(item.nilai_pajak)">
                     </div>
                 </td>
                 <td class="px-4 py-2 whitespace-nowrap">
                     <span class="block w-full p-2.5 text-right"
                         x-text="'Rp ' + formatNumber( calculateItemSubtotalDisplay(index))"></span>
-                    <input type="text" :name="'items[' + index + '][total]'" :value="toDbValue(item.total)">
+                    <input type="hidden" :name="'items[' + index + '][subtotal]'" :value="toDbValue(item.subtotal)">
+                    <input type="hidden" :name="'items[' + index + '][total]'" :value="toDbValue(item.total)">
                     <input type="hidden" :name="'items[' + index + '][pajak_id]'" x-model="item.pajak_id">
-                    <input type="text" :name="'items[' + index + '][nilai_pajak]'"
-                        :value="toDbValue(item.nilai_pajak)">
+
                 </td>
                 <td class="px-4 py-2 text-center">
                     <button type="button" @click="removeItem(index)" class="text-red-500">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=" M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5
+                                4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </button>
                 </td>

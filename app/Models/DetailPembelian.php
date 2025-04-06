@@ -28,6 +28,7 @@ class DetailPembelian extends Model
         'other_cost',
         'diskon_value',
         'pajak_value',
+        'pajak_id',
         'subtotal',
         'total',
         'stok',

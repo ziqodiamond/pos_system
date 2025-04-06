@@ -16,7 +16,7 @@
         <div class="flex justify-between items-center text-sm">
             <div class="flex items-center gap-2">
                 <span class="text-gray-600">Diskon</span>
-                <select name="diskon_type" x-model="formData.diskonType" @change="calculateTotal()"
+                <select name="diskon_mode" x-model="formData.diskonType" @change="calculateTotal()"
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2">
                     <option value="persen">%</option>
                     <option value="nominal">Rp</option>
@@ -28,7 +28,7 @@
                         x-show="formData.diskonType === 'nominal' ">Rp
                     </span>
                     <template x-if="formData.diskonType === 'persen'">
-                        <input type="text" name="diskon"
+                        <input type="text" name="diskon_value"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-2 pl-9 pr-8 text-right"
                             placeholder="0" x-model="formData.diskon" @input="calculateTotal()">
                     </template>
@@ -41,9 +41,9 @@
                         <input type="text"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-2 pl-9 text-right"
                             placeholder="0" x-model.lazy="formData.diskon"
-                            x-effect="$el.value = formatNumber(formData.biayaLain)"
+                            x-effect="$el.value = formatNumber(formData.diskon)"
                             @blur="$event.target.value = formatNumber(formData.diskon); calculateTotal()">
-                        <input type="hidden" name="diskon" :value="toDbValue(formData.diskon)">
+                        <input type="hidden" name="diskon_value" :value="toDbValue(formData.diskon)">
                     </template>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                         x-effect="$el.value = formatNumber(formData.biayaLain)"
                         @blur="$event.target.value = formatNumber(formData.biayaLain); calculateTotal()">
 
-                    <input type="text" name="biaya_lain" :value="toDbValue(formData.biayaLain)">
+                    <input type="hidden" name="biaya_lain" :value="toDbValue(formData.biayaLain)">
                 </div>
             </div>
         </div>
@@ -118,7 +118,7 @@
                         x-effect="$el.value = formatNumber(formData.uangMuka)"
                         @blur="$event.target.value = formatNumber(formData.uangMuka); calculateTotal()">
 
-                    <input type="text" name="uang_muka" :value="toDbValue(formData.uangMuka)">
+                    <input type="hidden" name="uang_muka" :value="toDbValue(formData.uangMuka)">
 
                 </div>
             </div>

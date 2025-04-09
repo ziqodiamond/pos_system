@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('kode')->unique();
             $table->string('nama');
-            $table->enum('status', ['active', 'inactive'])->default('actives');
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
             $table->softDeletes();
         });

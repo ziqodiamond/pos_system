@@ -15,9 +15,9 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('no_ref');
             $table->date('tanggal_pembelian');
-            $table->date('tanggal_masuk');
-            $table->foreignUuid('supplier_id')->nullable()->constrained('suppliers')->onDelete('set null');
-            $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->date('tanggal_masuk')->nullable();
+            $table->foreignUuid('supplier_id')->nullable()->constrained('suppliers')->restrictOnDelete();
+            $table->foreignUuid('user_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->text('deskripsi')->nullable();
             $table->unsignedBigInteger('subtotal');
             $table->enum('diskon_mode', ['persen', 'nominal'])->default('persen');
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('pajak_value');
             $table->unsignedBigInteger('biaya_lainnya');
             $table->unsignedBigInteger('total');
-            $table->enum('status', ['processing', 'received', 'completed'])->default('processing');
+            $table->enum('status', ['processing', 'received', 'completed', 'cenceled'])->default('processing');
             $table->timestamps();
             $table->softDeletes();
         });

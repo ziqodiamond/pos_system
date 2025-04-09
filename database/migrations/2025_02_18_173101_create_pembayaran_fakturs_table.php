@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('pembayaran_fakturs', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('faktur_id')->constrained('faktur_pembelians');
+            $table->foreignUuid('faktur_id')->constrained('faktur_pembelians')->cascadeOnDelete();
             $table->date('tanggal_pembayaran');
             $table->unsignedBigInteger('jumlah_pembayaran');
             $table->string('metode_pembayaran');
             $table->text('deskripsi')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

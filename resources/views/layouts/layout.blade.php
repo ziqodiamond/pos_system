@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-100 dark:bg-gray-900">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -41,7 +41,12 @@
 
 
         <!-- Notification Alert -->
-        @if ($errors->any() || session()->has('success') || session()->has('warning') || session()->has('info'))
+        @if (
+            $errors->any() ||
+                session()->has('success') ||
+                isset($success) ||
+                session()->has('warning') ||
+                session()->has('info'))
             <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="fixed top-4 right-4 z-50">
                 <!-- Error Handling -->
                 @if ($errors->any())
@@ -69,7 +74,7 @@
                 @endif
 
                 <!-- Success Message -->
-                @if (session()->has('success'))
+                @if (session()->has('success') || isset($success))
                     <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg mb-2">
                         <div class="flex items-center">
                             <div class="py-1">
@@ -78,7 +83,7 @@
                                         d="M5 13l4 4L19 7"></path>
                                 </svg>
                             </div>
-                            <div>{{ session('success') }}</div>
+                            <div>{{ session('success') ?? $success }}</div>
                             <button @click="show = false" class="ml-4">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

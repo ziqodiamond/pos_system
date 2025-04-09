@@ -33,6 +33,7 @@ class DetailPembelian extends Model
         'total',
         'stok',
         'status',
+
     ];
 
     public function pembelian()

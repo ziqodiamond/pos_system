@@ -96,9 +96,11 @@ class BarangController extends Controller
             'harga_beli' => 'required|numeric',
             'harga_pokok' => 'required|numeric',
             'harga_jual' => 'required|numeric',
+            'markup' => 'nullable|decimal:0,2', // Allows 2 decimal places
             'pajak_id' => 'required|uuid',
             'satuan_id' => 'required|uuid',
             'diskon' => 'required|numeric',
+            'diskon_nominal' => 'required|numeric',
             'stok_minimal' => 'required|numeric',
             'jumlah' => 'array',
             'satuan_konversi_id' => 'array',
@@ -117,7 +119,9 @@ class BarangController extends Controller
         $barang->harga_beli = $request->harga_beli;
         $barang->harga_pokok = $request->harga_pokok;
         $barang->harga_jual = $request->harga_jual;
+        $barang->markup = $request->markup ?? 0; // Default to 0 if not provided
         $barang->diskon_value = $request->diskon;
+        $barang->diskon_nominal = $request->diskon_nominal;
         $barang->stok_minimum = $request->stok_minimal;
         $barang->stok = 0; // Atau sesuai kebutuhan
         $barang->pajak_id = $request->pajak_id;
@@ -168,9 +172,11 @@ class BarangController extends Controller
                 'harga_beli' => 'required|numeric|min:0',
                 'harga_pokok' => 'required|numeric|min:0',
                 'harga_jual' => 'required|numeric|min:0',
+                'markup' => 'nullable|decimal:0,2',
                 'pajak_id' => 'nullable|exists:pajaks,id',
                 'satuan_id' => 'required|exists:satuans,id',
                 'diskon' => 'required|numeric|min:0',
+                'diskon_nominal' => 'required|numeric',
                 'stok_minimal' => 'required|numeric|min:0',
                 'photo_file' => 'nullable|image|max:2048', // Menambahkan validasi untuk gambar
             ]);
@@ -187,9 +193,11 @@ class BarangController extends Controller
                 'harga_beli' => $request->harga_beli,
                 'harga_pokok' => $request->harga_pokok,
                 'harga_jual' => $request->harga_jual,
+                'markup' => $request->markup,
                 'pajak_id' => $request->pajak_id,
                 'satuan_id' => $request->satuan_id,
                 'diskon_value' => $request->diskon,
+                'diskon_nominal' => $request->diskon_nominal,
                 'stok_minimum' => $request->stok_minimal,
             ];
 

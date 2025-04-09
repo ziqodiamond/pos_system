@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('konversis', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('barang_id')->constrained('barangs')->nullable();
+            $table->foreignUuid('barang_id')->constrained('barangs')->cascadeOnDelete()->nullable();
             $table->foreignUuid('satuan_id')->constrained('satuans')->cascadeOnDelete();
             $table->bigInteger('nilai_konversi');
             $table->foreignUuid('satuan_tujuan_id')->constrained('satuans')->cascadeOnDelete();

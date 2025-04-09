@@ -13,17 +13,18 @@ return new class extends Migration
     {
         Schema::create('barang_keluars', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained('users');
-            $table->foreignUuid('barang_id')->constrained('barangs');
+            $table->foreignUuid('user_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUuid('barang_id')->constrained('barangs')->restrictOnDelete();
             $table->string('nama_barang');
             $table->unsignedInteger('kuantitas');
             $table->foreignUuid('satuan_id')->constrained('satuans')->restrictOnDelete();
             $table->unsignedBigInteger('harga_satuan');
             $table->unsignedBigInteger('subtotal');
-            $table->enum('jenis', ['penjualan', 'retur', 'musnah']);
+            $table->string('jenis');
             $table->text('keterangan')->nullable();
             $table->date('tanggal_keluar');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

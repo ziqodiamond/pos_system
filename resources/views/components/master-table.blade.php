@@ -15,7 +15,7 @@
             @foreach ($columns as $col)
                 <th scope="col" class="px-6 py-3">{{ $col }}</th>
             @endforeach
-            <th scope="col" class="px-6 py-3">Action</th>
+
         </tr>
     </thead>
     <tbody>

@@ -1,24 +1,30 @@
 <?php
 
+use App\Models\FakturPembelian;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Inventori\InventoriController;
 use App\Http\Controllers\Laporan\LaporanController;
+use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\MasterData\PajakController;
+use App\Http\Controllers\Pembelian\FakturController;
 use App\Http\Controllers\MasterData\BarangController;
 use App\Http\Controllers\MasterData\SatuanController;
+use App\Http\Controllers\Inventori\InventoriController;
 use App\Http\Controllers\MasterData\CustomerController;
 use App\Http\Controllers\MasterData\KategoriController;
 use App\Http\Controllers\MasterData\KonversiController;
 use App\Http\Controllers\MasterData\SupplierController;
 use App\Http\Controllers\Pembelian\PembelianController;
-use App\Http\Controllers\MasterData\MasterDataController;
-use App\Http\Controllers\Pembelian\FakturController;
 use App\Http\Controllers\Penjualan\PenjualanController;
+use App\Http\Controllers\Penjualan\TransaksiController;
+use App\Http\Controllers\Inventori\StokBarangController;
+use App\Http\Controllers\MasterData\MasterDataController;
+use App\Http\Controllers\Inventori\BarangKeluarController;
+use App\Http\Controllers\Inventori\MutasiBarangController;
 use App\Http\Controllers\Penjualan\ReturPenjualanController;
-use App\Http\Controllers\Setting\SettingController;
-use App\Models\FakturPembelian;
+use App\Http\Controllers\Pembelian\DaftarPembelianController;
+use App\Http\Controllers\Penjualan\DaftarPenjualanController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -113,11 +119,18 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::post('/', [PembelianController::class, 'store'])->name('pembelian.store');
         });
         Route::prefix('list')->group(function () {
-            Route::get('/', [PembelianController::class, 'list'])->name('pembelian.list');
+            Route::get('/', [DaftarPembelianController::class, 'index'])->name('daftar-pembelian.index');
+            Route::put('/{id}', [DaftarPembelianController::class, 'update'])->name('pembelian.update');
+            Route::patch('/completed/{id}', [DaftarPembelianController::class, 'completed'])->name('pembelian.selesai');
+            Route::patch('/cencel/{id}', [DaftarPembelianController::class, 'cencel'])->name('pembelian.batal');
+            Route::delete('/{id}', [DaftarPembelianController::class, 'destroy'])->name('pembelian.destroy');
+            Route::patch('/{id}/restore', [DaftarPembelianController::class, 'restore'])->name('pembelian.restore');
+            Route::delete('/{id}/force-delete', [DaftarPembelianController::class, 'forceDelete'])->name('pembelian.forceDelete');
+            Route::post('/bulk-action', [DaftarPembelianController::class, 'bulkAction'])->name('pembelian.bulkAction');
         });
         Route::prefix('faktur')->group(function () {
             Route::get('/', [FakturController::class, 'index'])->name('faktur.index');
-            Route::put('/', [FakturController::class, 'pay'])->name('faktur.pay');
+            Route::post('/{id}', [FakturController::class, 'bayar'])->name('faktur.bayar');
         });
     });
 
@@ -125,13 +138,13 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::prefix('penjualan')->group(function () {
         Route::get('/', [PenjualanController::class, 'index'])->name('penjualan.index');
 
-        Route::prefix('kasir')->group(function () {
-            Route::get('/', [PenjualanController::class, 'kasir'])->name('penjualan.kasir');
-            Route::get('/', [PenjualanController::class, 'store'])->name('penjualan.store');
+        Route::prefix('transaksi')->group(function () {
+            Route::get('/', [TransaksiController::class, 'index'])->name('transaksi.index');
+            Route::post('/', [TransaksiController::class, 'store'])->name('transaksi.store');
         });
 
-        Route::prefix('daily-list')->group(function () {
-            Route::get('/', [PenjualanController::class, 'list'])->name('penjualan.list');
+        Route::prefix('daftar-penjualan')->group(function () {
+            Route::get('/', [DaftarPenjualanController::class, 'index'])->name('daftar-penjualan.index');
         });
 
         Route::prefix('return')->group(function () {
@@ -139,13 +152,24 @@ Route::middleware('auth', 'verified')->group(function () {
             Route::get('/', [ReturPenjualanController::class, 'store'])->name('penjualan.store');
         });
 
-        Route::prefix('return-list')->group(function () {
-            Route::get('/', [ReturPenjualanController::class, 'list'])->name('penjualan.index');
-        });
+        // Route::prefix('return-list')->group(function () {
+        //     Route::get('/', [ReturPenjualanController::class, 'list'])->name('penjualan.index');
+        // });
     });
 
     Route::prefix('inventori')->group(function () {
         Route::get('/', [InventoriController::class, 'index'])->name('inventori.index');
+
+        Route::prefix('barang-keluar')->group(function () {
+            Route::get('/', [BarangKeluarController::class, 'index'])->name('barang-keluar.index');
+            Route::post('/', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
+        });
+        Route::prefix('stok-barang')->group(function () {
+            Route::get('/', [StokBarangController::class, 'index'])->name('stok-barang.index');
+        });
+        Route::prefix('mutasi')->group(function () {
+            Route::get('/', [MutasiBarangController::class, 'index'])->name('mutasi.index');
+        });
     });
 
     Route::prefix('laporan')->group(function () {

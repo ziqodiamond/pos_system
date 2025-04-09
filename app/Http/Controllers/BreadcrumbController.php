@@ -34,25 +34,25 @@ class BreadcrumbController extends Controller
                         'url' => route('pembelian.index'),
                         'children' => [
                             'pembelian.create' => ['name' => 'Form Pembelian', 'url' => route('pembelian.create')],
-                            'pembelian.list' => ['name' => 'Daftar Pembelian', 'url' => route('pembelian.list')],
+                            'daftar-pembelian.index' => ['name' => 'Daftar Pembelian', 'url' => route('daftar-pembelian.index')],
+                            'faktur.index' => ['name' => 'Faktur Pembelian', 'url' => route('faktur.index')],
                         ],
                     ],
-                    // 'penjualan.index' => [
-                    //     'name' => 'Penjualan',
-                    //     'url' => route('penjualan.index'),
-                    //     'children' => [
-                    //         'pembelian.form' => ['name' => 'Form Pembelian', 'url' => route('penjualan.form')],
+                    'penjualan.index' => [
+                        'name' => 'Penjualan',
+                        'url' => route('penjualan.index'),
+                        'children' => [
+                            'transaksi.index' => ['name' => 'Transaksi Baru', 'url' => route('transaksi.index')],
+                            'daftar-penjualan.index' => ['name' => 'Daftar Penjualan', 'url' => route('daftar-penjualan.index')],
 
-                    //     ],
-                    // ],
-                    // 'inventori.index' => [
-                    //     'name' => 'Inventori',
-                    //     'url' => route('inventori.index'),
-                    //     'children' => [
-                    //         'pembelian.form' => ['name' => 'Form Pembelian', 'url' => route('inventori.form')],
+                        ],
+                    ],
+                    'inventori.index' => [
+                        'name' => 'Inventori',
+                        'url' => route('inventori.index'),
 
-                    //     ],
-                    // ],
+                    ],
+
                     // 'laporan.index' => [
                     //     'name' => 'Laporan',
                     //     'url' => route('laporan.index'),

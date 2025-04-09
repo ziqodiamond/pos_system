@@ -22,6 +22,7 @@ class Penjualan extends Model
         'subtotal',
         'total_diskon',
         'total_pajak',
+        'dpp',
         'grand_total',
         'total_bayar',
         'kembalian',
@@ -47,5 +48,18 @@ class Penjualan extends Model
     public function retur()
     {
         return $this->hasOne(ReturPenjualan::class);
+    }
+    public function getTotalItemAttribute()
+    {
+        // Menghitung jumlah detail pembelian yang terkait
+        return $this->details()->count();
+    }
+    public static function formatRupiah($nilai)
+    {
+        // Konversi nilai sen menjadi rupiah (dibagi 100)
+        $rupiahValue = $nilai / 100;
+
+        // Format dengan pemisah ribuan titik dan desimal koma
+        return number_format($rupiahValue, 2, ',', '.');
     }
 }

@@ -16,7 +16,6 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'id' => \Str::uuid(), // Generate UUID for the user
             'name' => 'Super Admin',
             'email' => 'admin@admin.com',
             'password' => Hash::make('admin12345'), // Hash the password

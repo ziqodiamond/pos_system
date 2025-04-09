@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
 class FakturPembelian extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $primaryKey = 'id';
     public $incrementing = false;
@@ -41,7 +42,7 @@ class FakturPembelian extends Model
     }
     public function pembelian()
     {
-        return $this->hasMany(Pembelian::class);
+        return $this->belongsTo(Pembelian::class);
     }
     public function pembayaranFaktur()
     {

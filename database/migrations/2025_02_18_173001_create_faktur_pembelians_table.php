@@ -30,6 +30,7 @@ return new class extends Migration
             $table->unsignedBigInteger('total_hutang');
             $table->enum('status', ['lunas', 'hutang']);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -5,10 +5,13 @@
         @csrf
         <!-- Previous breadcrumbs code -->
         <div class="p-4 md:p-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-6">Tambah Pembelian</h1>
 
             <!-- Purchase Form using Alpine.js -->
             <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6">
+                    <h1 class="text-2xl font-bold text-gray-800 ">Tambah Pembelian</h1>
+                </div>
+
 
                 <!-- Form Header -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border-b">
@@ -640,7 +643,7 @@
 
                         // Hitung nilai diskon per satuan
                         item.nilai_diskon = item.jumlah_efektif > 0 ? item.diskon_per_item / item.jumlah_efektif :
-                        0;
+                            0;
 
                         // Hitung harga diskon satuan
                         item.harga_diskon = item.jumlah_efektif > 0 ? item.harga_setelah_diskon / item

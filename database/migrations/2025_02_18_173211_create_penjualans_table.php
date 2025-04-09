@@ -14,16 +14,18 @@ return new class extends Migration
         Schema::create('penjualans', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('no_ref');
-            $table->foreignUuid('kasir_id')->constrained('users');
-            $table->foreignUuid('customer_id')->constrained('customers');
+            $table->foreignUuid('kasir_id')->constrained('users')->restrictOnDelete();
+            $table->foreignUuid('customer_id')->nullable()->constrained('customers')->restrictOnDelete();
             $table->unsignedBigInteger('subtotal'); //tanpa diskon include pajak
             $table->unsignedBigInteger('total_diskon'); //total diskon barang
             $table->unsignedBigInteger('total_pajak'); //total pajak barang
+            $table->unsignedBigInteger('dpp'); //total diskon barang
             $table->unsignedBigInteger('grand_total'); //subtotal - total_dikon
             $table->unsignedBigInteger('total_bayar');
             $table->unsignedBigInteger('kembalian');
-            $table->enum('metode_pembayaran', ['tunai', 'debit', 'e-wallet']);
+            $table->string('metode_pembayaran');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

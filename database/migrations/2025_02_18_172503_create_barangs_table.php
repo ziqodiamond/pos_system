@@ -22,9 +22,9 @@ return new class extends Migration
             $table->unsignedBigInteger('harga_jual');
             $table->decimal('markup', 5, 2);
             $table->decimal('diskon_value', 5, 2);
-            $table->unsignedTinyInteger('diskon_nominal');
-            $table->unsignedTinyInteger('stok_minimum');
-            $table->unsignedBigInteger('stok');
+            $table->unsignedBigInteger('diskon_nominal');
+            $table->unsignedInteger('stok_minimum');
+            $table->unsignedInteger('stok');
             $table->foreignUuid('pajak_id')->constrained()->restrictOnDelete();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('gambar')->nullable();

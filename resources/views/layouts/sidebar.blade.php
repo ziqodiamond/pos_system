@@ -94,11 +94,11 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('penjualan.index') }}" wire:navigate
+                <a href="{{ route('inventori.index') }}" wire:navigate
                     class="block p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
                     :class="{
                         'bg-gray-300 dark:bg-gray-600': '{{ Request::route()->getName() }}'
-                        === 'penjualan.index'
+                        === 'inventori.index'
                     }">
                     Inventori
                 </a>

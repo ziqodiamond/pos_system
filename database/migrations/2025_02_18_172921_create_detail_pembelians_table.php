@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('detail_pembelians', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('pembelian_id')->constrained('pembelians')->cascadeOnDelete();
-            $table->foreignUuid('barang_id')->constrained('barangs');
+            $table->foreignUuid('barang_id')->constrained('barangs')->restrictOnDelete();
             $table->unsignedInteger('qty_user'); //kuantitaas yg di input user
             $table->unsignedInteger('qty_base');  //kuantitas yg udh dikonversi
             $table->foreignUuid('satuan_id')->constrained('satuans')->restrictOnDelete();
@@ -29,8 +29,9 @@ return new class extends Migration
             $table->unsignedBigInteger('subtotal'); // tanpa pajak tanpa diskon (harga_diskon * kuantitas)
             $table->unsignedBigInteger('total'); // dengan pajak, diskon, other cost (harga_pokok * kuantitas)
             $table->unsignedInteger('stok');
-            $table->enum('status', ['processing', 'received', 'completed'])->default('processing');
+            $table->enum('status', ['processing', 'received', 'completed', 'cenceled'])->default('processing');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

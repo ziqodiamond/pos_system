@@ -30,8 +30,24 @@ class Barang extends Model
         'stok',
         'pajak_id',
         'status',
-        'gambar,'
+        'gambar',
     ];
+
+    public function getFinalPriceAttribute()
+    {
+        $harga_jual = $this->harga_jual;
+        $diskon = ($harga_jual * $this->diskon_value) / 100;
+        $harga_after_diskon = $harga_jual - $diskon;
+        $pajak_amount = $this->pajak ? ($harga_after_diskon * $this->pajak->value) / 100 : 0;
+        return $harga_after_diskon + $pajak_amount;
+    }
+    public function getHargaRealAttribute()
+    {
+        $harga_pokok = $this->detailPembelian()->latest()->first()?->harga_pokok ?? 0;
+        $markup_percentage = $this->markup;
+        $markup_amount = ($harga_pokok * $markup_percentage) / 100;
+        return $harga_pokok + $markup_amount;
+    }
 
     public function kategori()
     {

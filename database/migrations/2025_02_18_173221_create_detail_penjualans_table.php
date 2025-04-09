@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('harga_diskon'); //sudah termasuk pajak
             $table->unsignedBigInteger('pajak_value'); //pajak satuan
             $table->decimal('diskon_value', 5, 2);
-            $table->unsignedTinyInteger('diskon_nominal'); //diskon satuan
+            $table->unsignedBigInteger('diskon_nominal'); //diskon satuan
             $table->unsignedInteger('kuantitas');
             $table->foreignUuid('satuan_id')->constrained('satuans')->restrictOnDelete();
             $table->unsignedBigInteger('total_diskon'); //diskon satuan * kuantitas
@@ -28,6 +28,7 @@ return new class extends Migration
             $table->unsignedBigInteger('subtotal'); // // subtotal tanpa diskon (harga_satuan * kuantitas)
             $table->unsignedBigInteger('total'); // total dengan diskon (harga_satuan * kuantitas) - diskon
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

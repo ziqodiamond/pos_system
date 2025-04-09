@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Models\DetailPembelian;
 use App\Models\FakturPembelian;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\BreadcrumbController;
 
@@ -45,6 +46,8 @@ class PembelianController extends Controller
      */
     public function store(Request $request)
     {
+        // Hapus dd($request->all()) karena dapat menghentikan eksekusi
+
         // Validasi input
         $validatedData = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
@@ -56,15 +59,14 @@ class PembelianController extends Controller
             'include_pajak' => 'boolean',
             'subtotalBeforeDiscount' => 'required|numeric|min:0',
             'subtotalAfterDiscount' => 'required|numeric|min:0',
-            'biaya_lain' => 'nullable|numeric|min:0',
             'diskon' => 'nullable|numeric|min:0',
             'diskon_mode' => 'required|in:persen,nominal',
             'total_diskon' => 'nullable|numeric|min:0',
             'total_pajak' => 'nullable|numeric|min:0',
             'biaya_lain' => 'nullable|numeric|min:0',
-            'uang_muka' => 'required|numeric|min:0', // Diubah menjadi required
+            'uang_muka' => 'required|numeric|min:0',
             'grand_total' => 'required|numeric|min:0',
-            'sisa' => 'required|numeric|min:0', // Diubah menjadi required
+            'sisa' => 'required|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.barang_id' => 'required|exists:barangs,id',
             'items.*.jumlah' => 'required|numeric|min:1',
@@ -79,7 +81,7 @@ class PembelianController extends Controller
             'items.*.pajak_value' => 'required|numeric|min:0',
             'items.*.subtotal' => 'required|numeric|min:0',
             'items.*.total' => 'required|numeric|min:0',
-            'items.*.pajak_id' => 'required|exists:pajaks,id', // Memperbaiki typo 'ecists' menjadi 'exists'
+            'items.*.pajak_id' => 'required|exists:pajaks,id',
         ], [
             // Pesan error custom untuk validasi
             'uang_muka.required' => 'Uang muka harus diisi',
@@ -122,7 +124,7 @@ class PembelianController extends Controller
             // Menyimpan detail pembelian untuk setiap item
             foreach ($validatedData['items'] as $itemData) {
                 // Ambil data barang terlebih dahulu
-                $barang = Barang::findOrFail($itemData['barang_id']);
+                // $barang = Barang::findOrFail($itemData['barang_id']);
 
                 $detailPembelian = new DetailPembelian();
                 $detailPembelian->pembelian_id = $pembelian->id;
@@ -145,10 +147,10 @@ class PembelianController extends Controller
 
                 // Update stok barang
                 // Memastikan model barang ada sebelum update stok
-                if ($barang) {
-                    $barang->stok = $barang->stok + $itemData['jumlah_efektif'];
-                    $barang->save();
-                }
+                // if ($barang) {
+                //     $barang->stok = $barang->stok + $itemData['jumlah_efektif'];
+                //     $barang->save();
+                // }
             }
 
             // Buat faktur pembelian untuk semua kasus (baik lunas maupun tidak)
@@ -165,7 +167,7 @@ class PembelianController extends Controller
             $fakturPembelian->pajak_value = $validatedData['total_pajak'] ?? 0;
             $fakturPembelian->total_tagihan = $validatedData['grand_total']; // Total dari pembelian;
 
-            if ($validatedData['lunas']) {
+            if (isset($validatedData['lunas']) && $validatedData['lunas']) {
                 $fakturPembelian->total_bayar = $validatedData['grand_total']; // Total bayar sama dengan grand total
                 $fakturPembelian->total_hutang = 0; // Tidak ada sisa hutang
                 $fakturPembelian->status = 'lunas';
@@ -173,6 +175,18 @@ class PembelianController extends Controller
                 $fakturPembelian->total_bayar = $validatedData['uang_muka']; // Uang muka atau pembayaran penuh jika lunas
                 $fakturPembelian->total_hutang = $validatedData['sisa']; // Sisa hutang
                 $fakturPembelian->status = 'hutang';
+
+                // Periksa apakah uang muka melebihi grand total
+                if ($validatedData['uang_muka'] > $validatedData['grand_total']) {
+                    // Ganti Log::warning ke session flash message
+                    session()->flash('warning', 'Uang muka (' . number_format($validatedData['uang_muka'] / 100) .
+                        ') lebih besar dari grand total (' . number_format($validatedData['grand_total'] / 100) . '). Nilai telah disesuaikan.');
+
+                    // Sesuaikan nilai yang masuk ke database agar konsisten
+                    $fakturPembelian->total_bayar = $validatedData['grand_total'];
+                    $fakturPembelian->total_hutang = 0;
+                    $fakturPembelian->status = 'lunas';
+                }
             }
 
             $fakturPembelian->save();
@@ -186,15 +200,15 @@ class PembelianController extends Controller
             // Rollback transaksi jika terjadi kesalahan
             DB::rollback();
 
-            // Log error untuk debugging
+            // Ganti Log::error ke session flash message
+            session()->flash('error', 'Terjadi kesalahan saat menyimpan pembelian: ' . $e->getMessage());
+
+            // Tetap mencatat ke log untuk keperluan debugging
             Log::error('Error saat menyimpan pembelian: ' . $e->getMessage());
 
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Terjadi kesalahan saat menyimpan pembelian: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan pembelian: ' . $e->getMessage());
         }
     }
-
     public function list()
     {
         $breadcrumbs = BreadcrumbController::generateBreadcrumbs();

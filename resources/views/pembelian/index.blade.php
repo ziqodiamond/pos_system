@@ -18,7 +18,7 @@
                 <span class="font-semibold text-center text-xs sm:text-xs md:text-sm lg:text-md">Pembelian Baru</span>
             </a>
 
-            <a href="#"
+            <a href="{{ route('daftar-pembelian.index') }}"
                 class="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 dark:bg-gray-700 w-28 h-28 xs:w-28 xs:h-28 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:h-36 lg:w-36 xl:h-40 xl:w-40 transition duration-300 ease-in-out transform hover:scale-105">
                 <svg class="w-[48px] h-[48px] text-gray-800 dark:text-white mb-3" xmlns="http://www.w3.org/2000/svg"
                     xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
@@ -30,7 +30,7 @@
                 <span class="font-semibold text-center text-xs sm:text-xs md:text-sm lg:text-md">Daftar Pembelian</span>
             </a>
 
-            <a href="#"
+            <a href="{{ route('faktur.index') }}"
                 class="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 dark:bg-gray-700 w-28 h-28 xs:w-28 xs:h-28 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:h-36 lg:w-36 xl:h-40 xl:w-40 transition duration-300 ease-in-out transform hover:scale-105">
                 <svg class="w-[48px] h-[48px] text-gray-800 dark:text-white mb-3" xmlns="http://www.w3.org/2000/svg"
                     width="24" height="24" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">

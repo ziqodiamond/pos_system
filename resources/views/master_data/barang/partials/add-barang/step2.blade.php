@@ -401,6 +401,7 @@
                     <span class="font-medium">Total Diskon:</span>
                     <span class="text-blue-600 dark:text-blue-400"
                         x-text="'Rp ' + formatCurrency(diskonNominal / 100)"></span>
+                    <input type="hidden" name="diskon_nominal" x-model="diskonNominal" />
                 </p>
                 <p class="text-gray-700 dark:text-gray-300">
                     <span class="font-medium">Harga Jual Setelah Diskon:</span>

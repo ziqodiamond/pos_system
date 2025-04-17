@@ -1,14 +1,128 @@
 <x-layout>
 
 
-    @include('components.breadcrumbs')
-    <div class="bg-white shadow-md rounded-lg p-4 m-2">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Daftar Konversi</h2>
-            <button type="button"
-                class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                Export Data
-            </button>
+    <div class="p-2"> @include('components.breadcrumbs')</div>
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 m-2">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-2xl font-bold">Daftar Konversi</h2>
+            <div x-data="{ modalOpen: false }">
+                <!-- Trigger Button -->
+                <button type="button" @click="modalOpen = true"
+                    class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                    Export Data
+                </button>
+                <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0" x-cloak
+                    class="fixed inset-0 z-30 flex items-center justify-center bg-black bg-opacity-50"
+                    @click.self="modalOpen = false">
+
+                    <!-- Modal Content -->
+                    <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 transform scale-90"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 transform scale-100"
+                        x-transition:leave-end="opacity-0 transform scale-90"
+                        class="w-full max-w-md p-6 mx-auto bg-white rounded-lg shadow-xl dark:bg-gray-800">
+
+                        <!-- Modal Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                                Export Laporan Data Konversi Satuan
+                            </h3>
+                            <button @click="modalOpen = false" type="button"
+                                class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Filter Form -->
+                        <form action="{{ route('konversi.pdf') }}" method="GET" target="_blank">
+                            <div class="space-y-4">
+                                <!-- Filter Tipe Konversi -->
+                                <div>
+                                    <label for="tipe_konversi"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tipe
+                                        Konversi</label>
+                                    <select id="tipe_konversi" name="tipe_konversi"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                        <option value="">Semua Tipe</option>
+                                        <option value="universal">Universal</option>
+                                        <option value="barang">Per Barang</option>
+                                    </select>
+                                </div>
+
+                                <!-- Filter Barang -->
+                                <div>
+                                    <label for="barang_id"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                        Barang
+                                    </label>
+                                    <select id="barang_id" name="barang_id"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                        <option value="">Semua Barang</option>
+                                        @foreach ($barangs as $barang)
+                                            <option value="{{ $barang->id }}">{{ $barang->kode }} -
+                                                {{ $barang->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+
+
+
+                                <!-- Pengurutan -->
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Urutkan
+                                        Berdasarkan</label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <select name="sort_by"
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                            <option value="id">ID</option>
+                                            <option value="barang_id">Barang</option>
+                                            <option value="satuan_id">Satuan Asal</option>
+                                            <option value="nilai_konvensi">Nilai Konversi</option>
+                                            <option value="satuan_tujuan_id">Satuan Tujuan</option>
+                                            <option value="created_at">Tanggal Dibuat</option>
+                                        </select>
+
+                                        <select name="sort_order"
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                            <option value="asc">Naik (A-Z)</option>
+                                            <option value="desc">Turun (Z-A)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tombol Submit -->
+                            <div class="flex items-center justify-end mt-6 space-x-2">
+                                <button type="button" @click="modalOpen = false"
+                                    class="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+                                    Batal
+                                </button>
+                                <button type="submit"
+                                    class="px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                                    <svg class="inline w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                            d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                    Generate PDF
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -23,200 +137,336 @@
             <div id="table-container" class="overflow-x-auto shadow-md sm:rounded-lg mt-2">
                 @include('master_data.konversi.partials.table')
             </div>
-            @foreach ($konversi as $iten)
-                <script>
-                    // Fungsi untuk dropdown edit konversi dengan inisialisasi satuan terpilih
-                    // Fungsi dropdown edit konversi dengan inisialisasi yang lebih baik
-                    function dropdownEditKonversi(initialId = '') {
-                        return {
-                            // Status dropdown
-                            open: false,
-                            // Kata kunci pencarian
-                            search: '',
-                            // ID satuan yang dipilih
-                            selectedId: initialId,
-                            // Objek satuan yang dipilih
-                            selected: {},
-                            // Daftar satuan konversi dari database
-                            satuanList: @json($satuanKonversi),
 
-                            // Fungsi untuk menyaring satuan berdasarkan pencarian
-                            get filteredSatuan() {
-                                return this.search.trim() === '' ?
-                                    this.satuanList :
-                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
-                            },
+            <script>
+                // Fungsi untuk dropdown satuan dasar
+                function dropdownDasar() {
+                    return {
+                        open: false,
+                        search: '',
+                        selected: {
+                            id: ''
+                        }, // Inisialisasi dengan objek yang memiliki id kosong
+                        satuanList: @json($satuanDasar),
 
-                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
-                            init() {
-                                this.selectedId = initialId;
-                                this.selected = this.satuanList.find(satuan => satuan.id === this.selectedId) || {};
+                        get filteredSatuan() {
+                            return this.search.trim() === '' ?
+                                this.satuanList :
+                                this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                        },
 
-                            },
+                        // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                        init() {
+                            // Ambil ID satuan dari input lama dengan penanganan nilai null
+                            let selectedId = {{ old('satuan_dasar_id') !== null ? old('satuan_dasar_id') : 'null' }};
 
-                            // Metode untuk memilih satuan
-                            select(satuan) {
-                                this.selected = satuan;
-                                this.selectedId = satuan.id; // Perbarui selectedId
-                                this.search = satuan.nama;
-                                this.close();
-                            },
+                            // Pastikan selected memiliki struktur yang valid
+                            this.selected = {
+                                id: ''
+                            };
 
-                            // Tutup dropdown
-                            close() {
-                                this.open = false;
-                            },
-
-                            // Buka dropdown
-                            openDropdown() {
-                                this.open = true;
-                            },
-
-                            // Pantau perubahan pencarian
-                            watchSearch() {
-                                this.open = true;
-                            }
-                        };
-                    }
-
-                    // Fungsi untuk dropdown edit satuan dasar dengan inisialisasi satuan terpilih
-                    function dropdownEditDasar(initialId = '') {
-                        return {
-                            open: false,
-                            search: '',
-                            // ID satuan yang dipilih
-                            selectedId: initialId,
-                            selected: {},
-                            satuanList: @json($satuanDasar),
-
-                            get filteredSatuan() {
-                                return this.search.trim() === '' ?
-                                    this.satuanList :
-                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
-                            },
-
-                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
-                            init() {
-                                this.selectedId = initialId;
-                                this.selected = this.satuanList.find(satuan => satuan.id === this.selectedId) || {};
-
-                            },
-
-                            select(satuan) {
-
-                                this.search = satuan.nama;
-                                this.selected = satuan;
-                                this.selectedId = satuan.id; // Perbarui selectedId
-                                this.close();
-                            },
-
-                            close() {
-                                this.open = false;
-                            },
-
-                            openDropdown() {
-                                this.open = true;
-                            },
-
-                            watchSearch() {
-                                this.open = true;
-                            }
-                        };
-                    }
-
-                    // Fungsi untuk dropdown satuan dasar dengan inisialisasi satuan terpilih
-                    function dropdownDasar() {
-                        return {
-                            open: false,
-                            search: '',
-                            selected: {},
-                            satuanList: @json($satuanDasar),
-
-                            get filteredSatuan() {
-                                return this.search.trim() === '' ?
-                                    this.satuanList :
-                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
-                            },
-
-                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
-                            init() {
-                                // Ambil ID satuan dari input lama
-                                let selectedId = {{ old('satuan_dasar_id') ?? 'null' }};
-
+                            // Cek apakah selectedId valid dan bukan null
+                            if (selectedId && selectedId !== 'null' && this.satuanList && this.satuanList.length > 0) {
                                 // Cari satuan yang sesuai dengan ID
-                                this.selected = this.satuanList.find(satuan => satuan.id === selectedId) || {};
-
-                                // Atur nama pencarian sesuai satuan terpilih
-                                this.search = this.selected.nama || '';
-                            },
-
-                            select(satuan) {
-                                this.selected = satuan;
-                                this.search = satuan.nama;
-                                this.close();
-                            },
-
-                            close() {
-                                this.open = false;
-                            },
-
-                            openDropdown() {
-                                this.open = true;
-                            },
-
-                            watchSearch() {
-                                this.open = true;
+                                const foundSatuan = this.satuanList.find(satuan => satuan.id === selectedId);
+                                if (foundSatuan) {
+                                    this.selected = foundSatuan;
+                                    this.search = foundSatuan.nama || '';
+                                }
                             }
-                        };
-                    }
+                        },
 
-                    // Fungsi untuk dropdown satuan konversi dengan inisialisasi satuan terpilih
-                    function dropdownKonversi() {
-                        return {
-                            open: false,
-                            search: '',
-                            selected: {},
-                            satuanList: @json($satuanKonversi),
+                        select(satuan) {
+                            this.selected = satuan || {
+                                id: ''
+                            };
+                            this.search = satuan ? satuan.nama : '';
+                            this.close();
+                        },
 
-                            get filteredSatuan() {
-                                return this.search.trim() === '' ?
-                                    this.satuanList :
-                                    this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
-                            },
+                        close() {
+                            this.open = false;
+                        },
 
-                            // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
-                            init() {
-                                // Ambil ID satuan dari input lama
-                                let selectedId = {{ old('satuan_konversi_id') ?? 'null' }};
+                        openDropdown() {
+                            this.open = true;
+                        },
 
+                        watchSearch() {
+                            this.open = true;
+                        },
+
+                        // Mendapatkan ID dengan aman
+                        getSelectedId() {
+                            return this.selected && this.selected.id ? this.selected.id : '';
+                        }
+                    };
+                }
+
+                // Fungsi untuk dropdown satuan konversi
+                function dropdownKonversi() {
+                    return {
+                        open: false,
+                        search: '',
+                        selected: {
+                            id: ''
+                        }, // Inisialisasi dengan objek yang memiliki id kosong
+                        satuanList: @json($satuanKonversi),
+
+                        get filteredSatuan() {
+                            return this.search.trim() === '' ?
+                                this.satuanList :
+                                this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                        },
+
+                        // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                        init() {
+                            // Ambil ID satuan dari input lama dengan penanganan nilai null
+                            let selectedId = {{ old('satuan_konversi_id') !== null ? old('satuan_konversi_id') : 'null' }};
+
+                            // Pastikan selected memiliki struktur yang valid
+                            this.selected = {
+                                id: ''
+                            };
+
+                            // Cek apakah selectedId valid dan bukan null
+                            if (selectedId && selectedId !== 'null' && this.satuanList && this.satuanList.length > 0) {
                                 // Cari satuan yang sesuai dengan ID
-                                this.selected = this.satuanList.find(satuan => satuan.id === selectedId) || {};
-
-                                // Atur nama pencarian sesuai satuan terpilih
-                                this.search = this.selected.nama || '';
-                            },
-
-                            select(satuan) {
-                                this.selected = satuan;
-                                this.search = satuan.nama;
-                                this.close();
-                            },
-
-                            close() {
-                                this.open = false;
-                            },
-
-                            openDropdown() {
-                                this.open = true;
-                            },
-
-                            watchSearch() {
-                                this.open = true;
+                                const foundSatuan = this.satuanList.find(satuan => satuan.id === selectedId);
+                                if (foundSatuan) {
+                                    this.selected = foundSatuan;
+                                    this.search = foundSatuan.nama || '';
+                                }
                             }
-                        };
-                    }
-                </script>
-            @endforeach
+                        },
+
+                        select(satuan) {
+                            this.selected = satuan || {
+                                id: ''
+                            };
+                            this.search = satuan ? satuan.nama : '';
+                            this.close();
+                        },
+
+                        close() {
+                            this.open = false;
+                        },
+
+                        openDropdown() {
+                            this.open = true;
+                        },
+
+                        watchSearch() {
+                            this.open = true;
+                        },
+
+                        // Mendapatkan ID dengan aman
+                        getSelectedId() {
+                            return this.selected && this.selected.id ? this.selected.id : '';
+                        }
+                    };
+                }
+
+                // Fungsi untuk dropdown edit konversi dengan penanganan nilai kosong
+                function dropdownEditKonversi(initialId = '') {
+                    return {
+                        // Status dropdown
+                        open: false,
+                        // Kata kunci pencarian
+                        search: '',
+                        // ID satuan yang dipilih
+                        selectedId: initialId || '',
+                        // Objek satuan yang dipilih
+                        selected: {
+                            id: ''
+                        }, // Inisialisasi dengan objek yang memiliki id kosong
+                        // Daftar satuan konversi dari database
+                        satuanList: @json($satuanKonversi),
+
+                        // Fungsi untuk menyaring satuan berdasarkan pencarian
+                        get filteredSatuan() {
+                            return this.search.trim() === '' ?
+                                this.satuanList :
+                                this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                        },
+
+                        // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                        init() {
+                            this.selectedId = initialId || '';
+
+                            // Pastikan selected memiliki struktur yang valid
+                            this.selected = {
+                                id: ''
+                            };
+
+                            // Cek apakah ada ID valid dan satuanList tidak kosong
+                            if (this.selectedId && this.satuanList && this.satuanList.length > 0) {
+                                const foundSatuan = this.satuanList.find(satuan => satuan.id === this.selectedId);
+                                if (foundSatuan) {
+                                    this.selected = foundSatuan;
+                                    this.search = foundSatuan.nama || '';
+                                }
+                            }
+                        },
+
+                        // Metode untuk memilih satuan
+                        select(satuan) {
+                            this.selected = satuan || {
+                                id: ''
+                            };
+                            this.selectedId = satuan ? satuan.id : ''; // Perbarui selectedId
+                            this.search = satuan ? satuan.nama : '';
+                            this.close();
+                        },
+
+                        // Tutup dropdown
+                        close() {
+                            this.open = false;
+                        },
+
+                        // Buka dropdown
+                        openDropdown() {
+                            this.open = true;
+                        },
+
+                        // Pantau perubahan pencarian
+                        watchSearch() {
+                            this.open = true;
+                        },
+
+                        // Mendapatkan ID dengan aman
+                        getSelectedId() {
+                            return this.selected && this.selected.id ? this.selected.id : '';
+                        }
+                    };
+                }
+
+                // Fungsi untuk dropdown edit satuan dasar dengan penanganan nilai kosong
+                function dropdownEditDasar(initialId = '') {
+                    return {
+                        open: false,
+                        search: '',
+                        // ID satuan yang dipilih
+                        selectedId: initialId || '',
+                        selected: {
+                            id: ''
+                        }, // Inisialisasi dengan objek yang memiliki id kosong
+                        satuanList: @json($satuanDasar),
+
+                        get filteredSatuan() {
+                            return this.search.trim() === '' ?
+                                this.satuanList :
+                                this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                        },
+
+                        // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                        init() {
+                            this.selectedId = initialId || '';
+
+                            // Pastikan selected memiliki struktur yang valid
+                            this.selected = {
+                                id: ''
+                            };
+
+                            // Cek apakah ada ID valid dan satuanList tidak kosong
+                            if (this.selectedId && this.satuanList && this.satuanList.length > 0) {
+                                const foundSatuan = this.satuanList.find(satuan => satuan.id === this.selectedId);
+                                if (foundSatuan) {
+                                    this.selected = foundSatuan;
+                                    this.search = foundSatuan.nama || '';
+                                }
+                            }
+                        },
+
+                        select(satuan) {
+                            this.selected = satuan || {
+                                id: ''
+                            };
+                            this.selectedId = satuan ? satuan.id : ''; // Perbarui selectedId
+                            this.search = satuan ? satuan.nama : '';
+                            this.close();
+                        },
+
+                        close() {
+                            this.open = false;
+                        },
+
+                        openDropdown() {
+                            this.open = true;
+                        },
+
+                        watchSearch() {
+                            this.open = true;
+                        },
+
+                        // Mendapatkan ID dengan aman
+                        getSelectedId() {
+                            return this.selected && this.selected.id ? this.selected.id : '';
+                        }
+                    };
+                }
+
+                // Fungsi untuk dropdown edit konversi dengan penanganan nilai kosong
+                function dropdownEditKonversi(initialId = '') {
+                    return {
+                        // Status dropdown
+                        open: false,
+                        // Kata kunci pencarian
+                        search: '',
+                        // ID satuan yang dipilih
+                        selectedId: initialId || null,
+                        // Objek satuan yang dipilih
+                        selected: {},
+                        // Daftar satuan konversi dari database
+                        satuanList: @json($satuanKonversi),
+
+                        // Fungsi untuk menyaring satuan berdasarkan pencarian
+                        get filteredSatuan() {
+                            return this.search.trim() === '' ?
+                                this.satuanList :
+                                this.satuanList.filter(satuan => satuan.nama.toLowerCase().includes(this.search.toLowerCase()));
+                        },
+
+                        // Inisialisasi dropdown dengan memilih satuan sesuai kondisi
+                        init() {
+                            this.selectedId = initialId || null;
+
+                            // Cek apakah ada ID valid dan satuanList tidak kosong
+                            if (this.selectedId && this.satuanList && this.satuanList.length > 0) {
+                                const foundSatuan = this.satuanList.find(satuan => satuan.id === this.selectedId);
+                                if (foundSatuan) {
+                                    this.selected = foundSatuan;
+                                    this.search = foundSatuan.nama;
+                                }
+                            }
+                        },
+
+                        // Metode untuk memilih satuan
+                        select(satuan) {
+                            this.selected = satuan;
+                            this.selectedId = satuan.id; // Perbarui selectedId
+                            this.search = satuan.nama;
+                            this.close();
+                        },
+
+                        // Tutup dropdown
+                        close() {
+                            this.open = false;
+                        },
+
+                        // Buka dropdown
+                        openDropdown() {
+                            this.open = true;
+                        },
+
+                        // Pantau perubahan pencarian
+                        watchSearch() {
+                            this.open = true;
+                        }
+                    };
+                }
+            </script>
+
 
 
 
@@ -231,101 +481,157 @@
         const reportSearchRoute = @json(route('konversi.index'));
 
         document.addEventListener('DOMContentLoaded', () => {
-            let lastSelectedFilter = {}; // Menyimpan state terakhir tiap grup filter
+            // Buat variabel global untuk menyimpan status filter terakhir yang dipilih per grup (berdasarkan name)
+            window.lastSelectedFilter = {};
 
-            // Setup event listeners
+            // Tambahkan event listener ke input pencarian
             document.getElementById('search').addEventListener('input', handleSearchAndFilter);
+
+            // Tambahkan event listener ke semua checkbox filter (yang memiliki class 'filter-input')
             document.querySelectorAll('.filter-input').forEach(input => {
-                input.addEventListener('click', handleUnselect);
+                input.addEventListener('click', function(event) {
+                    const groupName = this.name; // Nama grup dari filter (berdasarkan atribut name)
+                    const wasChecked = this
+                        .checked; // Cek apakah sebelumnya checkbox dalam kondisi dicentang
+
+                    // Jika user klik filter yang sama dengan sebelumnya, maka toggle: hapus pilihan
+                    if (window.lastSelectedFilter[groupName] === this.value) {
+                        this.checked = false; // Uncheck
+                        window.lastSelectedFilter[groupName] =
+                            null; // Reset status terakhir untuk grup ini
+                    } else {
+                        // Jika pilih filter baru, uncheck semua checkbox dalam grup yang sama
+                        document.querySelectorAll(`.filter-input[name="${groupName}"]`).forEach(
+                            i => {
+                                i.checked = false;
+                            });
+
+                        // Centang filter yang baru dipilih
+                        this.checked = true;
+                        window.lastSelectedFilter[groupName] = this
+                            .value; // Simpan status filter yang baru
+                    }
+
+                    // Panggil fungsi filter dan search
+                    handleSearchAndFilter();
+
+                    // Perbarui tampilan tombol aksi berdasarkan status filter
+                    handleStatusFilterChange();
+                });
             });
 
-            function handleUnselect(event) {
-                const input = event.target;
-                const groupName = input.name;
-
-                // Kalau klik filter yang sama, unselect
-                if (lastSelectedFilter[groupName] === input) {
-                    input.checked = false;
-                    lastSelectedFilter[groupName] = null;
-                } else {
-                    lastSelectedFilter[groupName] = input;
-                }
-
-                handleSearchAndFilter();
-            }
-
+            // Fungsi utama untuk melakukan pencarian dan filtering
             function handleSearchAndFilter() {
-                const selectedFilters = {};
+                const selectedFilters = {}; // Objek untuk menyimpan filter yang aktif
 
-                // Ambil nilai search
-                const query = encodeURIComponent(document.getElementById('search').value);
+                // Ambil input search dari user
+                const query = document.getElementById('search').value;
 
-                // Ambil semua filter yang dicek
+                // Ambil semua filter (checkbox) yang dicentang
                 document.querySelectorAll('.filter-input:checked').forEach(input => {
-                    selectedFilters[input.name] = input.value;
+                    selectedFilters[input.name] = input.value; // Simpan berdasarkan nama filter (group)
                 });
 
+                // Gabungkan query search dan filter jadi string query URL
                 const queryString = new URLSearchParams({
                     ...selectedFilters,
                     search: query
                 }).toString();
 
+                // Kirim request AJAX ke server (asumsi `reportSearchRoute` adalah route pencarian)
                 fetch(`${reportSearchRoute}?${queryString}`, {
                         headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-Requested-With': 'XMLHttpRequest' // Identifikasi sebagai request AJAX
                         }
                     })
                     .then(response => {
+                        // Jika response gagal, lempar error
                         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.json();
+                        return response.json(); // Parse response JSON
                     })
                     .then(data => {
+                        // Tampilkan hasil pencarian/filter ke dalam elemen #table-container
                         document.getElementById('table-container').innerHTML = data.html;
 
-                        // ✅ Re-bind event setelah fetch selesai
+                        // Re-bind event checkbox karena elemen tabel sudah di-replace
                         rebindCheckboxEvents();
                     })
                     .catch(error => console.error('Error fetching filter results:', error));
             }
 
-            // 💪 Fungsi buat pasang ulang event checkbox setelah data ke-fetch
-            function rebindCheckboxEvents() {
-                const selectAllCheckbox = document.getElementById('checkbox-all');
-                const checkboxes = document.querySelectorAll('.item-checkbox');
-                const selectedIdsInput = document.getElementById('selectedIds');
+            // Fungsi untuk menyesuaikan tampilan tombol aksi berdasarkan status filter yang dipilih
+            function handleStatusFilterChange() {
+                // Ambil status yang sedang dipilih (jika ada)
+                const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
 
-                // Select All Checkbox Event
+                // Ambil semua tombol aksi yang relevan
+                const editAction = document.getElementById('editAction');
+                const deleteAction = document.getElementById('deleteAction');
+                const restoreAction = document.getElementById('restoreAction');
+                const forceDeleteAction = document.getElementById('forceDeleteAction');
+
+                // Jika status = deleted, sembunyikan tombol edit/delete, tampilkan tombol restore/force delete
+                if (selectedStatus === 'deleted') {
+                    editAction?.classList.add('hidden');
+                    deleteAction?.classList.add('hidden');
+                    restoreAction?.classList.remove('hidden');
+                    forceDeleteAction?.classList.remove('hidden');
+                } else {
+                    // Jika bukan deleted, tampilkan tombol edit/delete, sembunyikan restore/force delete
+                    editAction?.classList.remove('hidden');
+                    deleteAction?.classList.remove('hidden');
+                    restoreAction?.classList.add('hidden');
+                    forceDeleteAction?.classList.add('hidden');
+                }
+            }
+
+            // Fungsi untuk meregistrasi ulang event checkbox setelah konten di-reload via AJAX
+            function rebindCheckboxEvents() {
+                const selectAllCheckbox = document.getElementById('checkbox-all'); // Checkbox untuk "pilih semua"
+                const checkboxes = document.querySelectorAll('.item-checkbox'); // Checkbox individual
+                const selectedIdsInput = document.getElementById(
+                    'selectedIds'); // Hidden input untuk menyimpan id yang dipilih
+
+                // Jika elemen tidak ditemukan, hentikan fungsi
+                if (!selectAllCheckbox || checkboxes.length === 0 || !selectedIdsInput) {
+                    return;
+                }
+
+                // Event: Saat checkbox "pilih semua" diubah
                 selectAllCheckbox.addEventListener('change', () => {
+                    // Semua checkbox individual akan mengikuti status "pilih semua"
                     checkboxes.forEach((checkbox) => (checkbox.checked = selectAllCheckbox.checked));
-                    updateSelectedIds();
+                    updateSelectedIds(); // Perbarui ID yang dipilih
                 });
 
-                // Event checkbox individual
+                // Event: Saat checkbox individual diubah
                 checkboxes.forEach((checkbox) => {
                     checkbox.addEventListener('change', () => {
+                        // Jika semua checkbox dicentang, maka "pilih semua" ikut dicentang
                         selectAllCheckbox.checked = [...checkboxes].every(cb => cb.checked);
-                        updateSelectedIds();
+                        updateSelectedIds(); // Perbarui ID yang dipilih
                     });
                 });
 
-                // Fungsi update selected IDs
+                // Fungsi untuk memperbarui nilai dari input hidden berdasarkan checkbox yang dicentang
                 function updateSelectedIds() {
                     const selectedIds = Array.from(checkboxes)
-                        .filter((checkbox) => checkbox.checked)
-                        .map((checkbox) => checkbox.value);
+                        .filter((checkbox) => checkbox.checked) // Ambil hanya checkbox yang dicentang
+                        .map((checkbox) => checkbox.value); // Ambil nilai (id) dari masing-masing checkbox
 
-                    selectedIdsInput.value = selectedIds.join(',');
+                    selectedIdsInput.value = selectedIds.join(','); // Gabungkan menjadi string (id1,id2,...)
 
-                    // Cek ulang Select All (kalau semua ke-check, otomatis aktif)
-                    selectAllCheckbox.checked = checkboxes.length === selectedIds.length;
+                    // Pastikan status "select all" tetap sinkron jika jumlah yang dipilih sama dengan jumlah total
+                    selectAllCheckbox.checked = checkboxes.length > 0 && checkboxes.length === selectedIds.length;
                 }
 
-                // Pastikan ulang selected IDs tetap tersimpan
+                // Panggil update pertama kali untuk memastikan nilai awal sinkron
                 updateSelectedIds();
             }
 
-            // 🔥 Panggil rebind pertama kali (buat table awal sebelum fetch)
+            // Jalankan rebind dan atur tombol aksi saat halaman pertama kali dimuat
             rebindCheckboxEvents();
+            handleStatusFilterChange();
         });
     </script>
 

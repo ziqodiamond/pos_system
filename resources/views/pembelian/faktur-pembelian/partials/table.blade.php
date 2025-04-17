@@ -36,7 +36,7 @@
             <td class="px-6 py-4 whitespace-nowrap">
                 @if ($item->status == 'lunas')
                     <span
-                        class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Lunas</span>
+                        class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-12.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Lunas</span>
                 @else
                     <span
                         class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">Hutang</span>
@@ -51,6 +51,20 @@
                         <form action="{{ route('faktur.bayar', $item->id) }}" method="POST">
                             @csrf
                             <div class="space-y-4">
+                                <div>
+                                    <label for="metode_pembayaran"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                        Metode Pembayaran
+                                    </label>
+                                    <select name="metode_pembayaran" id="metode_pembayaran" required
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                                        <option value="">Pilih metode pembayaran</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="transfer">Transfer Bank</option>
+                                        <option value="debit">Kartu Debit</option>
+                                        <option value="kredit">Kartu Kredit</option>
+                                    </select>
+                                </div>
                                 <div>
                                     <label for="nominal"
                                         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">

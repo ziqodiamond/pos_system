@@ -2,20 +2,26 @@
 
 namespace App\Http\Controllers\MasterData;
 
+use Exception;
 use App\Models\Pajak;
 use App\Models\Barang;
 use App\Models\Satuan;
+use App\Models\Setting;
 use App\Models\Kategori;
 use App\Models\Konversi;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Http\Controllers\BreadcrumbController;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Exports\BarangExport;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
+use App\Http\Controllers\BreadcrumbController;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BarangController extends Controller
 {
@@ -85,299 +91,254 @@ class BarangController extends Controller
     }
 
 
-    public function store(Request $request)
-    {
-        // Validasi input
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'kode' => 'required|string|unique:barangs,kode',
-            'kategori_id' => 'required|uuid',
-            'status' => 'required|in:aktif,inaktif',
-            'harga_beli' => 'required|numeric',
-            'harga_pokok' => 'required|numeric',
-            'harga_jual' => 'required|numeric',
-            'markup' => 'nullable|decimal:0,2', // Allows 2 decimal places
-            'pajak_id' => 'required|uuid',
-            'satuan_id' => 'required|uuid',
-            'diskon' => 'required|numeric',
-            'diskon_nominal' => 'required|numeric',
-            'stok_minimal' => 'required|numeric',
-            'jumlah' => 'array',
-            'satuan_konversi_id' => 'array',
-            'nilai' => 'array',
-            'satuan_tujuan_id' => 'array',
-            'photo_file' => 'nullable|image|max:2048',
-        ]);
-
-        // Simpan data barang
-        $barang = new Barang();
-        $barang->id = Str::uuid();
-        $barang->kategori_id = $request->kategori_id;
-        $barang->kode = $request->kode;
-        $barang->nama = $request->nama;
-        $barang->satuan_id = $request->satuan_id;
-        $barang->harga_beli = $request->harga_beli;
-        $barang->harga_pokok = $request->harga_pokok;
-        $barang->harga_jual = $request->harga_jual;
-        $barang->markup = $request->markup ?? 0; // Default to 0 if not provided
-        $barang->diskon_value = $request->diskon;
-        $barang->diskon_nominal = $request->diskon_nominal;
-        $barang->stok_minimum = $request->stok_minimal;
-        $barang->stok = 0; // Atau sesuai kebutuhan
-        $barang->pajak_id = $request->pajak_id;
-        $barang->status = $request->status === 'aktif' ? 'active' : 'inactive';
-
-        if ($request->hasFile('photo_file')) {
-            $path = $request->file('photo_file')->store('private_files', 'local');
-            $barang->gambar = $path;
-        }
-
-        $barang->save();
-
-        // Simpan data konversi
-        if (!empty($request->satuan_konversi_id) && !empty($request->nilai) && !empty($request->satuan_tujuan_id)) {
-            foreach ($request->satuan_konversi_id as $index => $satuanKonversiId) {
-                $konversi = new Konversi();
-                $konversi->barang_id = $barang->id;
-                $konversi->satuan_id = $satuanKonversiId;
-                $konversi->nilai_konversi = $request->nilai[$index];
-                $konversi->satuan_tujuan_id = $request->satuan_tujuan_id[$index];
-                $konversi->save();
-            }
-        }
-
-        // Redirect kembali dengan pesan sukses
-        return redirect()->back()->with('success', 'Barang berhasil disimpan.');
-    }
-
     /**
-     * Mengupdate data barang beserta konversi terkait
+     * Menyimpan data barang baru ke database
      * 
-     * @param Request $request Request HTTP yang masuk
-     * @param string $id UUID dari barang yang akan diupdate
+     * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, $id)
+    public function store(Request $request)
     {
         try {
-            // Transaksi database untuk menjamin integritas data
-            DB::beginTransaction();
 
-            // Langkah 1: Validasi data request yang masuk
-            $validatedData = $request->validate([
+            // Validasi input
+            $request->validate([
                 'nama' => 'required|string|max:255',
-                'kode' => 'required|string|max:255|unique:barangs,kode,' . $id,
-                'kategori_id' => 'required|exists:kategoris,id',
-                'status' => 'required|in:aktif,nonaktif',
-                'harga_beli' => 'required|numeric|min:0',
-                'harga_pokok' => 'required|numeric|min:0',
-                'harga_jual' => 'required|numeric|min:0',
-                'markup' => 'nullable|decimal:0,2',
-                'pajak_id' => 'nullable|exists:pajaks,id',
-                'satuan_id' => 'required|exists:satuans,id',
-                'diskon' => 'required|numeric|min:0',
+                'kode' => 'required|string|unique:barangs,kode',
+                'kategori_id' => 'required|uuid',
+                'status' => 'required|in:aktif,inaktif',
+                'harga_beli' => 'required|numeric',
+                'harga_pokok' => 'required|numeric',
+                'harga_jual' => 'required|numeric',
+                'markup' => 'nullable|decimal:0,2', // Allows 2 decimal places
+                'pajak_id' => 'required|uuid',
+                'satuan_id' => 'required|uuid',
+                'diskon' => 'required|numeric',
                 'diskon_nominal' => 'required|numeric',
-                'stok_minimal' => 'required|numeric|min:0',
-                'photo_file' => 'nullable|image|max:2048', // Menambahkan validasi untuk gambar
+                'stok_minimal' => 'required|numeric',
+                'jumlah' => 'array',
+                'satuan_konversi_id' => 'array',
+                'nilai' => 'array',
+                'satuan_tujuan_id' => 'array',
+                'satuan_konversi_id.*' => 'nullable|exists:satuans,id',
+                'nilai.*' => 'nullable|numeric',
+                'satuan_tujuan_id.*' => 'nullable|exists:satuans,id',
+                'photo_file' => 'nullable|image|max:2048',
             ]);
 
-            // Langkah 2: Mencari data barang yang sudah ada
-            $barang = Barang::findOrFail($id);
+            // Mulai transaksi database
+            DB::beginTransaction();
 
-            // Membuat array data yang diupdate untuk pemeriksaan dirty
-            $updateData = [
-                'nama' => $request->nama,
-                'kode' => $request->kode,
-                'kategori_id' => $request->kategori_id,
-                'status' => $request->status == 'aktif' ? 'active' : 'inactive',
-                'harga_beli' => $request->harga_beli,
-                'harga_pokok' => $request->harga_pokok,
-                'harga_jual' => $request->harga_jual,
-                'markup' => $request->markup,
-                'pajak_id' => $request->pajak_id,
-                'satuan_id' => $request->satuan_id,
-                'diskon_value' => $request->diskon,
-                'diskon_nominal' => $request->diskon_nominal,
-                'stok_minimum' => $request->stok_minimal,
-            ];
+            // Simpan data barang
+            $barang = new Barang();
+            $barang->id = Str::uuid();
+            $barang->kategori_id = $request->kategori_id;
+            $barang->kode = $request->kode;
+            $barang->nama = $request->nama;
+            $barang->satuan_id = $request->satuan_id;
+            $barang->harga_beli = $request->harga_beli;
+            $barang->harga_pokok = $request->harga_pokok;
+            $barang->harga_jual = $request->harga_jual;
+            $barang->markup = $request->markup ?? 0; // Default to 0 if not provided
+            $barang->diskon_value = $request->diskon;
+            $barang->diskon_nominal = $request->diskon_nominal;
+            $barang->stok_minimum = $request->stok_minimal;
+            $barang->stok = 0; // Atau sesuai kebutuhan
+            $barang->pajak_id = $request->pajak_id;
+            $barang->status = $request->status === 'aktif' ? 'active' : 'inactive';
 
-            // Langkah 3: Memeriksa apakah data benar-benar berubah (dirty checking)
-            $isDirty = false;
-            foreach ($updateData as $key => $value) {
-                if ($barang->$key != $value) {
-                    $isDirty = true;
-                    break;
-                }
-            }
-
-            // Hanya update jika data berubah
-            if ($isDirty) {
-                // Langkah 4: Update data barang dengan data yang telah divalidasi
-                $barang->update($updateData);
-            }
-
-            // Langkah 5: Memproses update gambar jika disediakan
             if ($request->hasFile('photo_file')) {
-                // Validasi file gambar
-                if (!$request->file('photo_file')->isValid()) {
-                    throw new \Exception('Unggahan gambar tidak valid.');
-                }
-
-                // Hapus gambar lama jika ada
-                if ($barang->gambar) {
-                    // Menggunakan penyimpanan private untuk penanganan file yang lebih aman
-                    if (Storage::disk('private')->exists('barang/' . $barang->gambar)) {
-                        Storage::disk('private')->delete('barang/' . $barang->gambar);
-                    }
-                }
-
-                // Membuat nama file unik dengan timestamp dan ekstensi asli
-                $filename = time() . '-' . Str::random(10) . '.' . $request->photo_file->extension();
-
-                // Menyimpan di disk private alih-alih di path publik untuk keamanan lebih baik
-                $path = $request->photo_file->storeAs('barang', $filename, 'private');
-
-                if (!$path) {
-                    throw new \Exception('Gagal menyimpan gambar. Periksa izin direktori.');
-                }
-
-                // Update data barang dengan nama file gambar baru
-                $barang->update(['gambar' => $filename]);
+                $path = $request->file('photo_file')->store('private_files', 'local');
+                $barang->gambar = $path;
             }
 
-            // Langkah 6: Memproses konversi satuan
-            $updatedKonversiIds = []; // Melacak ID konversi yang telah diproses
+            $barang->save();
 
-            // Mendapatkan jumlah konversi yang akan diproses
-            $countKonversi = isset($request->nilai) ? count($request->nilai) : 0;
+            // Simpan data konversi
+            if (!empty($request->satuan_konversi_id) && !empty($request->nilai) && !empty($request->satuan_tujuan_id)) {
+                foreach ($request->satuan_konversi_id as $index => $satuanKonversiId) {
+                    // Skip jika satuan konversi kosong
+                    if (empty($satuanKonversiId)) continue;
 
-            // Memproses setiap entri konversi
-            for ($index = 0; $index < $countKonversi; $index++) {
-                // Memastikan semua data yang diperlukan ada untuk indeks ini
-                if (
-                    !isset($request->nilai[$index]) ||
-                    !isset($request->satuan_konversi_id[$index]) ||
-                    !isset($request->satuan_tujuan_id[$index])
-                ) {
-                    // Catat data tidak lengkap dan lanjutkan ke iterasi berikutnya
-                    \Log::warning("Konversi pada indeks {$index} memiliki data tidak lengkap untuk barang ID: {$barang->id}");
-                    continue;
+                    $konversi = new Konversi();
+                    $konversi->barang_id = $barang->id;
+                    $konversi->satuan_id = $satuanKonversiId;
+                    $konversi->nilai_konversi = $request->nilai[$index];
+                    $konversi->satuan_tujuan_id = $request->satuan_tujuan_id[$index];
+                    $konversi->save();
                 }
-
-                // Mengambil nilai-nilai yang diperlukan
-                $satuanId = $request->satuan_konversi_id[$index];
-                $satuanTujuanId = $request->satuan_tujuan_id[$index];
-                $nilaiKonversi = $request->nilai[$index];
-                $konversiId = isset($request->konversi_id[$index]) ? $request->konversi_id[$index] : null;
-
-                // Lewati jika ada nilai yang diperlukan kosong
-                if (empty($satuanId) || empty($satuanTujuanId) || empty($nilaiKonversi)) {
-                    \Log::warning("Konversi pada indeks {$index} memiliki nilai yang diperlukan kosong untuk barang ID: {$barang->id}");
-                    continue;
-                }
-
-                // Validasi ID satuan benar-benar ada di database
-                if (
-                    !DB::table('satuans')->where('id', $satuanId)->exists() ||
-                    !DB::table('satuans')->where('id', $satuanTujuanId)->exists()
-                ) {
-                    \Log::error("ID satuan tidak valid disediakan pada indeks {$index} untuk barang ID: {$barang->id}");
-                    continue;
-                }
-
-                // Periksa apakah mengupdate konversi yang ada atau membuat yang baru
-                if ($konversiId && Str::isUuid($konversiId)) {
-                    // Coba temukan konversi yang ada
-                    $konversi = $barang->konversi()->where('id', $konversiId)->first();
-
-                    if ($konversi) {
-                        // Periksa apakah data konversi berubah
-                        $konversiDirty =
-                            $konversi->satuan_id != $satuanId ||
-                            $konversi->satuan_tujuan_id != $satuanTujuanId ||
-                            $konversi->nilai_konversi != $nilaiKonversi;
-
-                        if ($konversiDirty) {
-                            // Update konversi yang ada menggunakan query builder
-                            $updated = DB::table('konversis')
-                                ->where('id', $konversi->id)
-                                ->update([
-                                    'satuan_id' => $satuanId,
-                                    'satuan_tujuan_id' => $satuanTujuanId,
-                                    'nilai_konversi' => $nilaiKonversi,
-                                    'updated_at' => now()
-                                ]);
-
-                            if (!$updated) {
-                                \Log::error("Gagal mengupdate konversi ID: {$konversi->id}");
-                            }
-                        }
-
-                        $updatedKonversiIds[] = $konversi->id;
-                    } else {
-                        \Log::warning("Konversi ID {$konversiId} tidak ditemukan untuk barang ID: {$barang->id}");
-                    }
-                } else {
-                    // Buat entri konversi baru
-                    try {
-                        $newKonversiId = (string) Str::uuid();
-                        $inserted = DB::table('konversis')->insert([
-                            'id' => $newKonversiId,
-                            'barang_id' => $barang->id,
-                            'satuan_id' => $satuanId,
-                            'satuan_tujuan_id' => $satuanTujuanId,
-                            'nilai_konversi' => $nilaiKonversi,
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ]);
-
-                        if ($inserted) {
-                            $updatedKonversiIds[] = $newKonversiId;
-                        } else {
-                            \Log::error("Gagal menyisipkan konversi baru untuk barang ID: {$barang->id}");
-                        }
-                    } catch (\Exception $e) {
-                        \Log::error("Error membuat konversi: " . $e->getMessage());
-                    }
-                }
-            }
-
-            // Langkah 7: Hapus konversi yang tidak disertakan dalam request
-            try {
-                $deletedCount = $barang->konversi()->whereNotIn('id', $updatedKonversiIds)->delete();
-                \Log::info("Menghapus {$deletedCount} record konversi yang tidak digunakan untuk barang ID: {$barang->id}");
-            } catch (\Exception $e) {
-                \Log::error("Error menghapus konversi yang tidak digunakan: " . $e->getMessage());
             }
 
             // Commit transaksi jika semua operasi berhasil
             DB::commit();
 
-            return redirect()->back()->with('success', 'Barang berhasil diperbarui!');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Redirect kembali dengan pesan sukses
+            return redirect()->back()->with('success', 'Barang berhasil disimpan.');
+        } catch (ValidationException $e) {
             // Menangani error validasi
             DB::rollBack();
+
+            // Mengubah array error menjadi pesan yang lebih mudah dibaca
+            $errorMessages = [];
+            foreach ($e->errors() as $field => $errors) {
+                $errorMessages[] = $field . ': ' . implode(', ', $errors);
+            }
+
+            // Mengirim pesan error sebagai string, bukan array
+            $errorMessage = 'Validasi gagal: ' . implode(' | ', $errorMessages);
+
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->with('error', $errorMessage);
+        } catch (Exception $e) {
+            // Menangani error umum
+            DB::rollBack();
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+
+    /**
+     * Update data barang berdasarkan ID 
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            // Validasi input
+            $request->validate([
+                'nama' => 'required|string|max:255',
+                'kode' => 'required|string|unique:barangs,kode,' . $id,
+                'kategori_id' => 'required|uuid',
+                'status' => 'required|in:aktif,inaktif',
+                'harga_beli' => 'required|numeric',
+                'harga_pokok' => 'required|numeric',
+                'harga_jual' => 'required|numeric',
+                'markup' => 'nullable|decimal:0,2', // Mengizinkan 2 desimal
+                'margin' => 'nullable|numeric',
+                'pajak_id' => 'required|uuid',
+                'satuan_id' => 'required|uuid',
+                'diskon' => 'required|numeric',
+                'stok_minimal' => 'required|numeric',
+                'jumlah' => 'array',
+                'konversi_id' => 'array',
+                'satuan_konversi_id' => 'array',
+                'nilai' => 'array',
+                'satuan_tujuan_id' => 'array',
+                'photo_file' => 'nullable|image|max:2048',
+            ]);
+
+            // Ambil data barang yang akan diupdate
+            $barang = Barang::findOrFail($id);
+
+            // Update data barang
+            $barang->kategori_id = $request->kategori_id;
+            $barang->kode = $request->kode;
+            $barang->nama = $request->nama;
+            $barang->satuan_id = $request->satuan_id;
+            $barang->harga_beli = $request->harga_beli;
+            $barang->harga_pokok = $request->harga_pokok;
+            $barang->harga_jual = $request->harga_jual;
+            $barang->markup = $request->markup ?? 0; // Default ke 0 jika tidak disediakan
+            $barang->diskon_value = $request->diskon;
+            // Pastikan diskon_nominal ada pada request jika dibutuhkan
+            $barang->diskon_nominal = $request->diskon_nominal ?? 0;
+            $barang->stok_minimum = $request->stok_minimal;
+            $barang->pajak_id = $request->pajak_id;
+            $barang->status = $request->status === 'aktif' ? 'active' : 'inactive';
+
+            // Handle upload file jika ada
+            if ($request->hasFile('photo_file')) {
+                // Hapus file lama jika ada
+                if ($barang->gambar && Storage::disk('local')->exists($barang->gambar)) {
+                    Storage::disk('local')->delete($barang->gambar);
+                }
+
+                // Simpan file baru
+                $path = $request->file('photo_file')->store('private_files', 'local');
+                $barang->gambar = $path;
+            }
+
+            $barang->save();
+
+            // Update atau tambah data konversi
+            // Pertama, hapus konversi yang tidak ada dalam request tapi ada di database
+            if (!empty($request->konversi_id)) {
+                // Ambil semua ID konversi yang ada di database untuk barang ini
+                $existingIds = Konversi::where('barang_id', $barang->id)->pluck('id')->toArray();
+
+                // Filter ID yang akan dipertahankan dari request
+                $keepIds = array_filter($request->konversi_id, function ($id) {
+                    return $id !== null;
+                });
+
+                // Hapus konversi yang tidak ada di request
+                $idsToDelete = array_diff($existingIds, $keepIds);
+                if (!empty($idsToDelete)) {
+                    Konversi::destroy($idsToDelete);
+                }
+            }
+
+            // Update atau tambah konversi baru
+            if (!empty($request->satuan_konversi_id)) {
+                foreach ($request->satuan_konversi_id as $index => $satuanKonversiId) {
+                    // Skip jika satuan konversi kosong
+                    if (empty($satuanKonversiId)) continue;
+
+                    // Jika ada ID konversi, update data yang sudah ada
+                    if (!empty($request->konversi_id[$index])) {
+                        $konversi = Konversi::find($request->konversi_id[$index]);
+                        if ($konversi) {
+                            $konversi->satuan_id = $satuanKonversiId;
+                            $konversi->nilai_konversi = $request->nilai[$index] ?? 0;
+                            $konversi->satuan_tujuan_id = $request->satuan_tujuan_id[$index] ?? null;
+                            $konversi->save();
+                        }
+                    }
+                    // Jika tidak ada ID konversi, tambah konversi baru
+                    else {
+                        $konversi = new Konversi();
+                        $konversi->barang_id = $barang->id;
+                        $konversi->satuan_id = $satuanKonversiId;
+                        $konversi->nilai_konversi = $request->nilai[$index] ?? 0;
+                        $konversi->satuan_tujuan_id = $request->satuan_tujuan_id[$index] ?? null;
+                        $konversi->save();
+                    }
+                }
+            }
+
+            // Redirect kembali dengan pesan sukses
+            return redirect()->back()->with('success', 'Data barang berhasil diperbarui.');
+        } catch (ValidationException $e) {
+            // Menangani error validasi
+            DB::rollBack();
+
+            // Mengubah array error menjadi pesan yang lebih mudah dibaca
+            $errorMessages = [];
+            foreach ($e->errors() as $field => $errors) {
+                $errorMessages[] = $field . ': ' . implode(', ', $errors);
+            }
+
+            // Mengirim pesan error sebagai string, bukan array
+            $errorMessage = 'Validasi gagal: ' . implode(' | ', $errorMessages);
+
             return redirect()->back()
                 ->withErrors($e->validator)
                 ->withInput()
-                ->with('error', 'Validasi gagal: ' . implode(', ', $e->errors()));
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Menangani kasus di mana barang tidak ditemukan
-            DB::rollBack();
-            \Log::error("Barang tidak ditemukan dengan ID: {$id}");
-            return redirect()->route('barang.index')
-                ->with('error', 'Barang dengan ID tersebut tidak ditemukan.');
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Menangani error database
-            DB::rollBack();
-            \Log::error("Error database saat mengupdate barang: " . $e->getMessage());
+                ->with('error', $errorMessage);
+        } catch (ModelNotFoundException $e) {
+            // Menangani jika data tidak ditemukan
             return redirect()->back()
-                ->withInput()
-                ->with('error', 'Terjadi kesalahan pada database. Silakan coba lagi atau hubungi administrator.');
-        } catch (\Exception $e) {
-            // Menangani exception lainnya
+                ->with('error', 'Data barang tidak ditemukan');
+        } catch (Exception $e) {
+            // Menangani error umum
             DB::rollBack();
-            \Log::error("Error mengupdate barang: " . $e->getMessage());
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -527,5 +488,86 @@ class BarangController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    public function export(Request $request)
+    {
+        $type = $request->input('type', 'pdf');
+
+        if ($type == 'pdf') {
+            return $this->generatePDF($request);
+        } else if ($type == 'excel') {
+            // Gunakan class export Excel terpisah
+            return Excel::download(new BarangExport($request), 'laporan-barang-' . now()->format('dmY-His') . '.xlsx');
+        } else {
+            return back()->with('error', 'Tipe ekspor tidak valid');
+        }
+    }
+
+    public function generatePDF(Request $request)
+    {
+        // Mempersiapkan query untuk data barang
+        $query = Barang::query();
+
+        // Filter berdasarkan kategori jika ada
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', $request->kategori_id);
+        }
+
+        // Filter berdasarkan status jika ada
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter berdasarkan stok minimum jika dicentang
+        if ($request->has('filter_stok_minimum')) {
+            $query->whereRaw('stok <= stok_minimum');
+        }
+
+        // Urutkan data
+        $sortBy = $request->input('sort_by', 'nama');
+        $sortOrder = $request->input('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Ambil semua data barang yang sesuai filter
+        $barangs = $query->with(['kategori', 'satuan', 'pajak'])->get();
+
+        // Hitung total nilai inventory (harga_pokok * stok)
+        $totalNilaiInventory = $barangs->sum(function ($barang) {
+            return $barang->harga_pokok * $barang->stok;
+        });
+
+        $settingQuery = Setting::whereIn('key', ['toko_nama', 'toko_alamat', 'toko_kota', 'toko_provinsi', 'toko_telepon', 'toko_email', 'toko_npwp'])
+            ->pluck('value', 'key')
+            ->toArray();
+
+        $toko = [
+            'nama' => $settingQuery['toko_nama'] ?? env('TOKO_NAMA', 'Nama Toko'),
+            'alamat' => $settingQuery['toko_alamat'] ?? env('TOKO_ALAMAT', 'Alamat Toko'),
+            'kota' => $settingQuery['toko_kota'] ?? env('TOKO_KOTA', 'Jakarta'),
+            'provinsi' => $settingQuery['toko_provinsi'] ?? env('TOKO_PROVINSI', 'DKI Jakarta'),
+            'telepon' => $settingQuery['toko_telepon'] ?? env('TOKO_TELEPON', 'Telepon Toko'),
+            'email' => $settingQuery['toko_email'] ?? env('TOKO_EMAIL', 'Email Toko'),
+            'npwp' => $settingQuery['toko_npwp'] ?? env('TOKO_NPWP', 'NPWP Toko'),
+        ];
+
+        // Siapkan data untuk view PDF
+        $data = [
+            'barangs' => $barangs,
+            'tanggal_cetak' => now()->format('d-m-Y H:i:s'),
+            'filter' => $request->all(),
+            'total_nilai_inventory' => $totalNilaiInventory,
+            'total_items' => $barangs->count(),
+            'toko' => $toko, // Menambahkan data toko ke view
+        ];
+
+        // Load view PDF dan convert ke PDF
+        $pdf = PDF::loadView('master_data.barang.pdf.barang-pdf', $data);
+
+        // Atur paper size ke A4
+        $pdf->setPaper('a4', 'portrait');
+
+        // Download PDF dengan nama dinamis
+        return $pdf->stream('laporan-barang-' . now()->format('dmY-His') . '.pdf');
     }
 }

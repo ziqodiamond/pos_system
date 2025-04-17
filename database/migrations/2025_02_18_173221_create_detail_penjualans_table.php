@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignUuid('penjualan_id')->constrained('penjualans')->cascadeOnDelete();
             $table->foreignUuid('barang_id')->constrained('barangs')->restrictOnDelete();
             $table->string('nama_barang');
+            $table->unsignedBigInteger('harga_pokok'); //harga beli satuan
             $table->unsignedBigInteger('harga_satuan'); //sudah termasuk pajak
             $table->unsignedBigInteger('harga_diskon'); //sudah termasuk pajak
             $table->unsignedBigInteger('pajak_value'); //pajak satuan

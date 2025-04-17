@@ -72,14 +72,5 @@
             </svg>
             <span class="text-sm">Simpan</span>
         </button>
-
-        <button type="button" @click="addModal = false"
-            class="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded flex items-center justify-center">
-            <svg class="w-5 h-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M6 18 17.94 6M18 18 6.06 6" />
-            </svg>
-            <span class="text-sm">Tutup</span>
-        </button>
     </form>
 </x-base-modal>

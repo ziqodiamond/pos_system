@@ -1,14 +1,11 @@
 <x-layout>
 
 
-    @include('components.breadcrumbs')
-    <div class="bg-white shadow-md rounded-lg p-4 m-2">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Daftar Pajak</h2>
-            <button type="button"
-                class="flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
-                Export Data
-            </button>
+    <div class="p-2"> @include('components.breadcrumbs')</div>
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 m-2">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-2xl font-bold">Daftar Pajak</h2>
+
         </div>
 
         <div class="overflow-x-auto">
@@ -34,101 +31,157 @@
         const reportSearchRoute = @json(route('pajak.index'));
 
         document.addEventListener('DOMContentLoaded', () => {
-            let lastSelectedFilter = {}; // Menyimpan state terakhir tiap grup filter
+            // Buat variabel global untuk menyimpan status filter terakhir yang dipilih per grup (berdasarkan name)
+            window.lastSelectedFilter = {};
 
-            // Setup event listeners
+            // Tambahkan event listener ke input pencarian
             document.getElementById('search').addEventListener('input', handleSearchAndFilter);
+
+            // Tambahkan event listener ke semua checkbox filter (yang memiliki class 'filter-input')
             document.querySelectorAll('.filter-input').forEach(input => {
-                input.addEventListener('click', handleUnselect);
+                input.addEventListener('click', function(event) {
+                    const groupName = this.name; // Nama grup dari filter (berdasarkan atribut name)
+                    const wasChecked = this
+                        .checked; // Cek apakah sebelumnya checkbox dalam kondisi dicentang
+
+                    // Jika user klik filter yang sama dengan sebelumnya, maka toggle: hapus pilihan
+                    if (window.lastSelectedFilter[groupName] === this.value) {
+                        this.checked = false; // Uncheck
+                        window.lastSelectedFilter[groupName] =
+                            null; // Reset status terakhir untuk grup ini
+                    } else {
+                        // Jika pilih filter baru, uncheck semua checkbox dalam grup yang sama
+                        document.querySelectorAll(`.filter-input[name="${groupName}"]`).forEach(
+                            i => {
+                                i.checked = false;
+                            });
+
+                        // Centang filter yang baru dipilih
+                        this.checked = true;
+                        window.lastSelectedFilter[groupName] = this
+                            .value; // Simpan status filter yang baru
+                    }
+
+                    // Panggil fungsi filter dan search
+                    handleSearchAndFilter();
+
+                    // Perbarui tampilan tombol aksi berdasarkan status filter
+                    handleStatusFilterChange();
+                });
             });
 
-            function handleUnselect(event) {
-                const input = event.target;
-                const groupName = input.name;
-
-                // Kalau klik filter yang sama, unselect
-                if (lastSelectedFilter[groupName] === input) {
-                    input.checked = false;
-                    lastSelectedFilter[groupName] = null;
-                } else {
-                    lastSelectedFilter[groupName] = input;
-                }
-
-                handleSearchAndFilter();
-            }
-
+            // Fungsi utama untuk melakukan pencarian dan filtering
             function handleSearchAndFilter() {
-                const selectedFilters = {};
+                const selectedFilters = {}; // Objek untuk menyimpan filter yang aktif
 
-                // Ambil nilai search
-                const query = encodeURIComponent(document.getElementById('search').value);
+                // Ambil input search dari user
+                const query = document.getElementById('search').value;
 
-                // Ambil semua filter yang dicek
+                // Ambil semua filter (checkbox) yang dicentang
                 document.querySelectorAll('.filter-input:checked').forEach(input => {
-                    selectedFilters[input.name] = input.value;
+                    selectedFilters[input.name] = input.value; // Simpan berdasarkan nama filter (group)
                 });
 
+                // Gabungkan query search dan filter jadi string query URL
                 const queryString = new URLSearchParams({
                     ...selectedFilters,
                     search: query
                 }).toString();
 
+                // Kirim request AJAX ke server (asumsi `reportSearchRoute` adalah route pencarian)
                 fetch(`${reportSearchRoute}?${queryString}`, {
                         headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-Requested-With': 'XMLHttpRequest' // Identifikasi sebagai request AJAX
                         }
                     })
                     .then(response => {
+                        // Jika response gagal, lempar error
                         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.json();
+                        return response.json(); // Parse response JSON
                     })
                     .then(data => {
+                        // Tampilkan hasil pencarian/filter ke dalam elemen #table-container
                         document.getElementById('table-container').innerHTML = data.html;
 
-                        // ✅ Re-bind event setelah fetch selesai
+                        // Re-bind event checkbox karena elemen tabel sudah di-replace
                         rebindCheckboxEvents();
                     })
                     .catch(error => console.error('Error fetching filter results:', error));
             }
 
-            // 💪 Fungsi buat pasang ulang event checkbox setelah data ke-fetch
-            function rebindCheckboxEvents() {
-                const selectAllCheckbox = document.getElementById('checkbox-all');
-                const checkboxes = document.querySelectorAll('.item-checkbox');
-                const selectedIdsInput = document.getElementById('selectedIds');
+            // Fungsi untuk menyesuaikan tampilan tombol aksi berdasarkan status filter yang dipilih
+            function handleStatusFilterChange() {
+                // Ambil status yang sedang dipilih (jika ada)
+                const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
 
-                // Select All Checkbox Event
+                // Ambil semua tombol aksi yang relevan
+                const editAction = document.getElementById('editAction');
+                const deleteAction = document.getElementById('deleteAction');
+                const restoreAction = document.getElementById('restoreAction');
+                const forceDeleteAction = document.getElementById('forceDeleteAction');
+
+                // Jika status = deleted, sembunyikan tombol edit/delete, tampilkan tombol restore/force delete
+                if (selectedStatus === 'deleted') {
+                    editAction?.classList.add('hidden');
+                    deleteAction?.classList.add('hidden');
+                    restoreAction?.classList.remove('hidden');
+                    forceDeleteAction?.classList.remove('hidden');
+                } else {
+                    // Jika bukan deleted, tampilkan tombol edit/delete, sembunyikan restore/force delete
+                    editAction?.classList.remove('hidden');
+                    deleteAction?.classList.remove('hidden');
+                    restoreAction?.classList.add('hidden');
+                    forceDeleteAction?.classList.add('hidden');
+                }
+            }
+
+            // Fungsi untuk meregistrasi ulang event checkbox setelah konten di-reload via AJAX
+            function rebindCheckboxEvents() {
+                const selectAllCheckbox = document.getElementById('checkbox-all'); // Checkbox untuk "pilih semua"
+                const checkboxes = document.querySelectorAll('.item-checkbox'); // Checkbox individual
+                const selectedIdsInput = document.getElementById(
+                    'selectedIds'); // Hidden input untuk menyimpan id yang dipilih
+
+                // Jika elemen tidak ditemukan, hentikan fungsi
+                if (!selectAllCheckbox || checkboxes.length === 0 || !selectedIdsInput) {
+                    return;
+                }
+
+                // Event: Saat checkbox "pilih semua" diubah
                 selectAllCheckbox.addEventListener('change', () => {
+                    // Semua checkbox individual akan mengikuti status "pilih semua"
                     checkboxes.forEach((checkbox) => (checkbox.checked = selectAllCheckbox.checked));
-                    updateSelectedIds();
+                    updateSelectedIds(); // Perbarui ID yang dipilih
                 });
 
-                // Event checkbox individual
+                // Event: Saat checkbox individual diubah
                 checkboxes.forEach((checkbox) => {
                     checkbox.addEventListener('change', () => {
+                        // Jika semua checkbox dicentang, maka "pilih semua" ikut dicentang
                         selectAllCheckbox.checked = [...checkboxes].every(cb => cb.checked);
-                        updateSelectedIds();
+                        updateSelectedIds(); // Perbarui ID yang dipilih
                     });
                 });
 
-                // Fungsi update selected IDs
+                // Fungsi untuk memperbarui nilai dari input hidden berdasarkan checkbox yang dicentang
                 function updateSelectedIds() {
                     const selectedIds = Array.from(checkboxes)
-                        .filter((checkbox) => checkbox.checked)
-                        .map((checkbox) => checkbox.value);
+                        .filter((checkbox) => checkbox.checked) // Ambil hanya checkbox yang dicentang
+                        .map((checkbox) => checkbox.value); // Ambil nilai (id) dari masing-masing checkbox
 
-                    selectedIdsInput.value = selectedIds.join(',');
+                    selectedIdsInput.value = selectedIds.join(','); // Gabungkan menjadi string (id1,id2,...)
 
-                    // Cek ulang Select All (kalau semua ke-check, otomatis aktif)
-                    selectAllCheckbox.checked = checkboxes.length === selectedIds.length;
+                    // Pastikan status "select all" tetap sinkron jika jumlah yang dipilih sama dengan jumlah total
+                    selectAllCheckbox.checked = checkboxes.length > 0 && checkboxes.length === selectedIds.length;
                 }
 
-                // Pastikan ulang selected IDs tetap tersimpan
+                // Panggil update pertama kali untuk memastikan nilai awal sinkron
                 updateSelectedIds();
             }
 
-            // 🔥 Panggil rebind pertama kali (buat table awal sebelum fetch)
+            // Jalankan rebind dan atur tombol aksi saat halaman pertama kali dimuat
             rebindCheckboxEvents();
+            handleStatusFilterChange();
         });
     </script>
 

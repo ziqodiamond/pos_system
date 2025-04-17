@@ -1,4 +1,4 @@
-<x-master-table :route="'satuan'" :items="$satuan" :columns="['Kode', 'Nama', 'Jenis', 'Keterangan', 'Status']">
+<x-master-table :route="'satuan'" :items="$satuan" :columns="['Kode', 'Nama', 'Jenis', 'Keterangan', 'Status', '']">
     @forelse ($satuan as $item)
         <tr
             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">

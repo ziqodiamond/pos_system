@@ -57,7 +57,7 @@ class DaftarPembelianController extends Controller
         return view('pembelian.daftar-pembelian.index', compact('breadcrumbs', 'pembelian'));
     }
 
-    public function completed($id)
+    public function received($id)
     {
         try {
             $pembelian = Pembelian::with(['details.barang'])->findOrFail($id);
@@ -68,11 +68,11 @@ class DaftarPembelianController extends Controller
                 $barang->save();
             }
 
-            $pembelian->status = 'completed';
+            $pembelian->status = 'received';
             $pembelian->tanggal_masuk = now();
             $pembelian->save();
 
-            return redirect()->back()->with('success', 'Pembelian berhasil diselesaikan');
+            return redirect()->back()->with('success', 'Pembelian berhasil diterima');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

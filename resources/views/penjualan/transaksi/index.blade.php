@@ -1,16 +1,32 @@
-<x-layout>
-
+<x-layout-without-navbar>
+    @if (session('print_id'))
+        <script>
+            const printRoute = "{{ route('transaksi.print', ['id' => session('print_id')]) }}";
+            console.log("Print route:", printRoute);
+            window.open(printRoute, '_blank');
+        </script>
+    @endif
 
     <!-- Kontainer utama -->
-    <div class="max-w-7xl mx-auto p-2" x-data="posApp">
+    <div class="max-w-7xl mx-auto px-2" x-data="posApp">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Transaksi</h1>
-            <div class="text-right">
-                <p class="text-sm text-gray-500">Kasir: {{ Auth::user()->name }}</p>
-                <p class="text-sm text-gray-500" x-data x-init="setInterval(() => $el.textContent = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date()), 1000)">
-                    {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s') }}
-                </p>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Kasir: {{ Auth::user()->name }}</p>
+                    <p class="text-sm text-gray-500" x-data x-init="setInterval(() => $el.textContent = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(new Date()), 1000)">
+                        {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y H:i:s') }}
+                    </p>
+                </div>
+                <a href="{{ route('penjualan.index') }}"
+                    class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </a>
             </div>
         </div>
 
@@ -28,9 +44,53 @@
                             </div>
                             <!-- Input pencarian -->
                             <input type="search" id="product-search" x-model="searchQuery" @keyup="searchProducts"
-                                @keydown.f2.window.prevent="$el.focus()"
+                                @keydown.f2.window.prevent="$el.focus(); showDropdown = true" autocomplete="off"
+                                @click="showDropdown = true"
                                 class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Cari produk (F2)..." />
+
+                            <!-- Product dropdown list yang mengambang -->
+                            <div x-show="showDropdown" @click.away="showDropdown = false"
+                                class="absolute z-10 mt-1 w-full border border-gray-200 rounded-lg bg-white shadow-lg max-h-96 overflow-y-auto">
+                                <!-- Daftar produk dengan format list -->
+                                <template x-for="product in filteredProducts" :key="product.id" x-cloak>
+                                    <div @click="addToCart(product); showDropdown = false"
+                                        class="flex items-center p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-all">
+                                        <!-- Informasi produk -->
+                                        <div class="ml-4 flex-grow">
+                                            <div class="flex items-center gap-2">
+                                                <p class="text-sm text-gray-500" x-text="product.kode"></p>
+                                                <h3 class="text-sm font-medium" x-text="product.nama"></h3>
+                                            </div>
+                                            <div class="flex items-center mt-1">
+                                                <p class="text-green-600 font-bold text-sm"
+                                                    x-text="formatCurrency(product.final_price || 
+                                        ((product.harga_jual - (product.diskon_nominal || 0)) + 
+                                        ((product.harga_jual - (product.diskon_nominal || 0)) * ((product.pajak?.persen || 0)/100)))
+                                    )">
+                                                </p>
+                                                <p x-show="product.diskon_value > 0" class="text-xs text-gray-500 ml-2">
+                                                    <span class="line-through"
+                                                        x-text="formatCurrency(product.harga_jual + (product.harga_jual * ((product.pajak?.persen || 0)/100)))"></span>
+                                                    <span class="ml-1 text-red-500"
+                                                        x-text="'-' + product.diskon_value + '%'"></span>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Stok produk -->
+                                        <div class="flex-shrink-0 ml-4">
+                                            <p class="text-xs text-gray-500" x-text="'Stok: ' + product.stok"></p>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- Pesan jika tidak ada produk -->
+                                <div x-show="filteredProducts.length === 0" class="p-4 text-center text-gray-500"
+                                    x-cloak>
+                                    Tidak ada produk yang ditemukan
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Kategori dropdown -->
@@ -42,44 +102,6 @@
                                     <option :value="category.id" x-text="category.nama"></option>
                                 </template>
                             </select>
-                        </div>
-                    </div>
-
-                    <!-- Product dropdown list -->
-                    <div class="mt-4 border border-gray-200 rounded-lg shadow max-h-96 overflow-y-auto">
-                        <!-- Daftar produk dengan format list -->
-                        <template x-for="product in filteredProducts" :key="product.id">
-                            <div @click="addToCart(product)"
-                                class="flex items-center p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-all">
-                                <!-- Informasi produk -->
-                                <div class="ml-4 flex-grow">
-                                    <h3 class="text-sm font-medium" x-text="product.nama"></h3>
-                                    <div class="flex items-center mt-1">
-                                        <p class="text-green-600 font-bold text-sm"
-                                            x-text="formatCurrency(product.final_price || 
-                                               ((product.harga_jual - (product.diskon_nominal || 0)) + 
-                                                ((product.harga_jual - (product.diskon_nominal || 0)) * ((product.pajak?.persen || 0)/100)))
-                                              )">
-                                        </p>
-                                        <p x-show="product.diskon_value > 0" class="text-xs text-gray-500 ml-2">
-                                            <span class="line-through"
-                                                x-text="formatCurrency(product.harga_jual + (product.harga_jual * ((product.pajak?.persen || 0)/100)))"></span>
-                                            <span class="ml-1 text-red-500"
-                                                x-text="'-' + product.diskon_value + '%'"></span>
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- Stok produk -->
-                                <div class="flex-shrink-0 ml-4">
-                                    <p class="text-xs text-gray-500" x-text="'Stok: ' + product.stok"></p>
-                                </div>
-                            </div>
-                        </template>
-
-                        <!-- Pesan jika tidak ada produk -->
-                        <div x-show="filteredProducts.length === 0" class="p-4 text-center text-gray-500">
-                            Tidak ada produk yang ditemukan
                         </div>
                     </div>
                 </div>
@@ -256,16 +278,31 @@
                         <!-- Hidden inputs akan dihasilkan secara dinamis oleh JavaScript -->
                     </form>
 
-                    <!-- Tombol bayar -->
-                    <button @click="prepareCheckout" :disabled="!canCheckout"
-                        @keydown.f4.window.prevent="canCheckout && prepareCheckout()"
-                        :class="{
-                            'bg-green-600 hover:bg-green-700': canCheckout,
-                            'bg-green-300 cursor-not-allowed': !canCheckout
-                        }"
-                        class="w-full text-white py-3 px-4 rounded-lg font-medium text-lg">
-                        <i class="fas fa-check-circle mr-1"></i> Bayar Sekarang (F4)
-                    </button>
+
+                    <!-- Container untuk tombol-tombol -->
+                    <div class="flex space-x-2">
+                        <!-- Tombol bayar saja -->
+                        <button @click="simpanTransaksi(false)" :disabled="!canCheckout"
+                            @keydown.f4.window.prevent="canCheckout && simpanTransaksi(false)"
+                            :class="{
+                                'bg-green-600 hover:bg-green-700': canCheckout,
+                                'bg-green-300 cursor-not-allowed': !canCheckout
+                            }"
+                            class="w-1/2 text-white py-3 px-4 rounded-lg font-medium text-lg">
+                            <i class="fas fa-check-circle mr-1"></i> Bayar Saja (F4)
+                        </button>
+
+                        <!-- Tombol simpan dan cetak -->
+                        <button @click="simpanTransaksi(true)" :disabled="!canCheckout"
+                            @keydown.f5.window.prevent="canCheckout && simpanTransaksi(true)"
+                            :class="{
+                                'bg-blue-600 hover:bg-blue-700': canCheckout,
+                                'bg-blue-300 cursor-not-allowed': !canCheckout
+                            }"
+                            class="w-1/2 text-white py-3 px-4 rounded-lg font-medium text-lg">
+                            <i class="fas fa-print mr-1"></i> Simpan & Cetak (F5)
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -494,6 +531,7 @@
                 },
 
                 // State UI
+                showDropdown: false,
                 searchQuery: '',
                 selectedCategory: null,
                 filteredProducts: [],
@@ -534,7 +572,6 @@
 
                 // Form data untuk hidden input
                 formData: {
-                    no_ref: '',
                     customer_id: null,
                     items: [],
                     subtotal: 0,
@@ -548,9 +585,9 @@
                 },
 
                 // Lifecycle hook
+                // Update pada bagian init()
                 init() {
                     this.loadData();
-                    this.formData.no_ref = this.generateRefNumber(); // Update no_ref di sini
                     this.cashAmountFormatted = '0,00'; // Inisialisasi format awal
 
                     // Setup keyboard shortcuts
@@ -566,7 +603,10 @@
                             }, 100);
                         } else if (e.key === 'F4' && this.canCheckout) {
                             e.preventDefault();
-                            this.prepareCheckout();
+                            this.simpanTransaksi(false);
+                        } else if (e.key === 'F5' && this.canCheckout) {
+                            e.preventDefault();
+                            this.simpanTransaksi(true);
                         }
                     });
                 },
@@ -582,23 +622,12 @@
                 },
 
                 // Methods
+                // Methods
                 loadData() {
                     // Inisialisasi data dari server
-                    this.filteredProducts = [...this.products];
-
-                    // Generate nomor referensi
-                    this.formData.no_ref = this.generateRefNumber();
-                },
-
-                // Fungsi untuk nomor referensi
-                generateRefNumber() {
-                    const date = new Date();
-                    const year = date.getFullYear().toString().substr(-2);
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-
-                    return `INV${year}${month}${day}${random}`;
+                    // Filter produk yang hanya memiliki status active sebelum ditampilkan
+                    this.filteredProducts = this.products.filter(product => product.status ===
+                        'active');
                 },
 
                 // Fungsi pencarian produk
@@ -606,13 +635,19 @@
                     const query = this.searchQuery.toLowerCase();
 
                     this.filteredProducts = this.products.filter(product => {
+                        // Memfilter berdasarkan query pencarian (nama atau kode produk)
                         const matchesQuery = product.nama.toLowerCase().includes(query) ||
                             product.kode.toLowerCase().includes(query);
 
+                        // Memfilter berdasarkan kategori yang dipilih
                         const matchesCategory = this.selectedCategory === null ||
                             product.kategori_id === this.selectedCategory;
 
-                        return matchesQuery && matchesCategory;
+                        // Memfilter berdasarkan status produk, hanya tampilkan yang active
+                        const isActive = product.status === 'active';
+
+                        // Produk harus memenuhi semua kriteria filter: query pencarian, kategori, dan status active
+                        return matchesQuery && matchesCategory && isActive;
                     });
                 },
 
@@ -661,28 +696,31 @@
                         // Ambil informasi pajak dari produk
                         const pajak_value = product.pajak ? product.pajak.persen : 0;
 
-                        // Menghitung diskon untuk harga dasar (sebelum pajak)
+                        // Nilai diskon berdasarkan Harag Jual (tnapa pajak) dalam persen
                         const diskon_value = product.diskon_value || 0;
+
+                        // Menghitung diskon berdasarkan Harga Jual (tanpa pajak)
                         const diskon_nominal_dasar = product.diskon_nominal ||
                             Math.round((diskon_value / 100) * harga_jual);
 
-                        // Hitung harga_setelah_diskon (harga dasar setelah didiskon, sebelum pajak)
+                        // Hitung harga setelah diskon (tanpa pajak)
                         const harga_setelah_diskon = Math.max(0, harga_jual - diskon_nominal_dasar);
 
-                        // Hitung pajak dari harga yang sudah didiskon, pembulatan ke integer
+                        // Hitung pajak dari harga jual
                         const pajak_per_item = Math.round((pajak_value / 100) * harga_jual);
 
+                        //HItung pajak dari harga sudah diskon
                         const pajak_per_item_diskon = Math.round((pajak_value / 100) *
                             harga_setelah_diskon);
 
-                        // Harga dengan pajak (harga setelah diskon + pajak)
+                        // Harga dengan pajak (diambil dari harga setelah diskon)
                         const harga_dengan_pajak = harga_setelah_diskon + pajak_per_item_diskon;
 
                         // Diskon nominal untuk display dihitung dari harga_jual (dengan/tanpa pajak)
                         let diskon_nominal;
                         if (product.diskon_nominal) {
-                            diskon_nominal = product.diskon_nominal + (product.diskon_nominal * (
-                                pajak_value / 100));
+                            diskon_nominal = product.diskon_nominal + Math.round(product
+                                .diskon_nominal * (pajak_value / 100));
                         } else {
                             diskon_nominal = Math.round((diskon_value / 100) * (harga_jual +
                                 pajak_per_item));
@@ -697,9 +735,12 @@
                             harga_dengan_pajak: harga_jual +
                                 pajak_per_item, // Harga satuan asli + pajak (sebelum diskon)
                             harga_setelah_diskon: harga_setelah_diskon, // Harga setelah diskon, sebelum pajak (untuk DPP)
+                            harga_diskon: harga_setelah_diskon +
+                                pajak_per_item_diskon, // Harga setelah diskon + pajak per item diskon
                             harga_final: harga_dengan_pajak -
                                 diskon_nominal, // Harga final setelah pajak dan diskon
-                            pajak_value: pajak_value, // Persentase pajak
+                            pajak_value: pajak_per_item_diskon, // Nilai pajak per item final (dari harga yang sudah didiskon)
+                            pajak_persen: pajak_value, // Persentase pajak (disimpan untuk keperluan perhitungan)
                             pajak_nominal: pajak_per_item, // Nilai pajak dalam nominal per item
                             diskon_value: diskon_value, // Persentase diskon
                             diskon_nominal: diskon_nominal, // Nilai diskon dalam nominal per item untuk display
@@ -740,7 +781,7 @@
 
                     // Hitung ulang total per item
                     // Pajak dihitung dari harga satuan setelah diskon * kuantitas
-                    item.total_pajak = item.pajak_nominal * item.kuantitas;
+                    item.total_pajak = item.pajak_value * item.kuantitas;
 
                     // Subtotal adalah (harga satuan asli + pajak) * kuantitas (untuk display)
                     item.subtotal = item.harga_dengan_pajak * item.kuantitas;
@@ -834,7 +875,7 @@
                         total_pajak += item.total_pajak;
 
                         // Hitung DPP - jumlah harga_setelah_diskon * kuantitas untuk item dengan pajak > 0
-                        if (item.pajak_value > 0) {
+                        if (item.pajak_persen > 0) {
                             // DPP adalah harga yang sudah didiskon (sebelum pajak) * kuantitas
                             dpp += item.harga_setelah_diskon * item.kuantitas;
                         }
@@ -914,9 +955,12 @@
                     }
                 },
 
-                // Checkout
-                prepareCheckout() {
+                // Metode untuk menyimpan transaksi dengan atau tanpa cetak
+                simpanTransaksi(cetak) {
                     if (!this.canCheckout) return;
+
+                    // Simpan status cetak untuk digunakan saat generate form
+                    this.cetakStatus = cetak;
 
                     // Generate hidden input fields
                     this.generateFormFields();
@@ -935,8 +979,8 @@
                     this.addHiddenInput(form, '_token', document.querySelector(
                         'meta[name="csrf-token"]').getAttribute('content'));
 
-                    // No Referensi
-                    this.addHiddenInput(form, 'no_ref', this.formData.no_ref);
+                    // Tambahkan input untuk status cetak
+                    this.addHiddenInput(form, 'cetak', this.cetakStatus ? 'true' : 'false');
 
                     // Customer
                     if (this.formData.customer_id) {
@@ -967,8 +1011,11 @@
                             .harga_dengan_pajak);
                         this.addHiddenInput(form, `items[${index}][harga_setelah_diskon]`, item
                             .harga_setelah_diskon); // Tambahkan harga setelah diskon
+                        this.addHiddenInput(form, `items[${index}][harga_diskon]`, item
+                            .harga_diskon
+                        ); // Tambahkan harga diskon (harga_setelah_diskon + pajak_per_item_diskon)
                         this.addHiddenInput(form, `items[${index}][pajak_value]`, item
-                            .pajak_value);
+                            .pajak_value); // Nilai pajak per item final (sudah termasuk diskon)
                         this.addHiddenInput(form, `items[${index}][pajak_nominal]`, item
                             .pajak_nominal);
                         this.addHiddenInput(form, `items[${index}][diskon_value]`, item
@@ -1131,7 +1178,6 @@
                 }
             }));
         });
-
         // Script AlpineJS untuk POS Checkout dengan AJAX
         // document.addEventListener('alpine:init', () => {
         //     Alpine.data('posApp', () => ({
@@ -1786,4 +1832,4 @@
         //     }));
         // });
     </script>
-</x-layout>
+</x-layout-without-navbar>

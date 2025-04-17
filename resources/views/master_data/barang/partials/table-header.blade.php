@@ -135,44 +135,74 @@
             ]" />
 
             <script>
-                function handleStatusFilterChange() {
-                    const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Fungsi untuk menangani perubahan status filter
+                    function handleStatusFilterChange() {
+                        const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
 
-                    const editAction = document.getElementById('editAction');
-                    const deleteAction = document.getElementById('deleteAction');
-                    const restoreAction = document.getElementById('restoreAction');
-                    const forceDeleteAction = document.getElementById('forceDeleteAction');
+                        const editAction = document.getElementById('editAction');
+                        const deleteAction = document.getElementById('deleteAction');
+                        const restoreAction = document.getElementById('restoreAction');
+                        const forceDeleteAction = document.getElementById('forceDeleteAction');
 
-                    if (selectedStatus === 'deleted') {
-                        editAction.classList.add('hidden');
-                        deleteAction.classList.add('hidden');
-                        restoreAction.classList.remove('hidden');
-                        forceDeleteAction.classList.remove('hidden');
-                    } else {
-                        editAction.classList.remove('hidden');
-                        deleteAction.classList.remove('hidden');
-                        restoreAction.classList.add('hidden');
-                        forceDeleteAction.classList.add('hidden');
+                        if (selectedStatus === 'deleted') {
+                            editAction.classList.add('hidden');
+                            deleteAction.classList.add('hidden');
+                            restoreAction.classList.remove('hidden');
+                            forceDeleteAction.classList.remove('hidden');
+                        } else {
+                            editAction.classList.remove('hidden');
+                            deleteAction.classList.remove('hidden');
+                            restoreAction.classList.add('hidden');
+                            forceDeleteAction.classList.add('hidden');
+                        }
                     }
-                }
 
-                // Panggil fungsi pas filter berubah
-                document.querySelectorAll('.filter-input').forEach(input => {
-                    input.addEventListener('click', function() {
-                        const allInputs = document.querySelectorAll('.filter-input');
+                    // Menangani event click pada filter
+                    document.querySelectorAll('.filter-input').forEach(input => {
+                        input.addEventListener('click', function(event) {
+                            const groupName = this.name;
+                            const wasChecked = this.dataset.wasChecked === 'true';
 
-                        // Uncheck semua input kecuali yang diklik
-                        allInputs.forEach(i => i.checked = false);
+                            // Uncheck semua input dalam grup yang sama
+                            document.querySelectorAll(`.filter-input[name="${groupName}"]`).forEach(i => {
+                                i.checked = false;
+                                i.dataset.wasChecked = 'false';
+                            });
 
-                        // Toggle hanya yang diklik (kalau sebelumnya unchecked, jadi checked)
-                        this.checked = !this.checked;
+                            // Toggle hanya yang diklik (jika sebelumnya unchecked, jadi checked)
+                            // Jika sebelumnya checked, biarkan unchecked
+                            if (!wasChecked) {
+                                this.checked = true;
+                                this.dataset.wasChecked = 'true';
+                            } else {
+                                this.dataset.wasChecked = 'false';
+                            }
 
-                        handleStatusFilterChange(); // Panggil ulang biar tombol update
+                            // Update filter dalam lastSelectedFilter untuk script pertama
+                            window.lastSelectedFilter = window.lastSelectedFilter || {};
+                            if (this.checked) {
+                                window.lastSelectedFilter[groupName] = this;
+                            } else {
+                                window.lastSelectedFilter[groupName] = null;
+                            }
+
+                            // Panggil fungsi filter dari script pertama
+                            if (typeof handleSearchAndFilter === 'function') {
+                                handleSearchAndFilter();
+                            }
+
+                            // Update tampilan tombol
+                            handleStatusFilterChange();
+                        });
+
+                        // Inisialisasi dataset untuk tracking status checkbox
+                        input.dataset.wasChecked = input.checked ? 'true' : 'false';
                     });
-                });
 
-                // Panggil juga saat pertama load
-                handleStatusFilterChange();
+                    // Panggil juga saat pertama load
+                    handleStatusFilterChange();
+                });
             </script>
         </div>
     </div>

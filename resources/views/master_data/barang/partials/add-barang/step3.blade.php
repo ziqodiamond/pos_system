@@ -32,7 +32,7 @@
         </div>
 
         <!-- Konversi Items Container -->
-        <div class="max-h-[190px] overflow-y-auto">
+        <div class="h-[190px] max-h-[190px] overflow-y-auto">
             <template x-for="(konversi, index) in konversis" :key="index">
                 <div class="grid grid-cols-5 gap-2 mb-2 konversi-item">
                     <!-- Jumlah -->
@@ -48,8 +48,7 @@
                             class="w-full bg-gray-100 border border-gray-200 rounded px-2 py-1 text-sm hover:placeholder-shown"
                             title="Cari Satuan Konversi">
                         <ul x-show="open" @click.outside="close()" x-cloak
-                            class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto"
-                            style="top: 100%; left: 0; right: 0;">
+                            class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto">
                             <template x-for="satuan in filteredSatuanKonversis" :key="satuan.id">
                                 <li @click="select(satuan)" class="cursor-pointer px-2 py-1 hover:bg-gray-100">
                                     <span x-text="satuan.nama"></span>
@@ -77,8 +76,7 @@
                             class="w-full bg-gray-100 border border-gray-200 rounded px-2 py-1 text-sm hover:placeholder-shown"
                             title="Cari Satuan Tujuan">
                         <ul x-show="open" @click.outside="close()" x-cloak
-                            class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto"
-                            style="top: 100%; left: 0; right: 0;">
+                            class="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 w-full max-h-40 overflow-y-auto">
                             <template x-for="satuan in filteredSatuanTujuans" :key="satuan.id">
                                 <li @click="select(satuan)" class="cursor-pointer px-2 py-1 hover:bg-gray-100">
                                     <span x-text="satuan.nama"></span>

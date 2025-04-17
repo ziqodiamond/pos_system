@@ -1,4 +1,16 @@
-<x-master-table :route="'barang'" :items="$barang" :columns="['Kode', 'Nama', 'Kategori', 'Harga Beli', 'Harga Pokok', 'Harga Jual', 'Diskon', 'Pajak', 'Status', 'Stok']">
+<x-master-table :route="'barang'" :items="$barang" :columns="[
+    'Kode',
+    'Nama',
+    'Kategori',
+    'Harga Beli',
+    'Harga Pokok',
+    'Harga Jual',
+    'Diskon',
+    'Pajak',
+    'Status',
+    'Stok',
+    '',
+]">
     @forelse ($barang as $item)
         <tr
             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -18,27 +30,30 @@
             <td class="px-6 py-4">
                 {{ $item->kategori->nama }}
             </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 whitespace-nowrap text-right">
                 Rp {{ number_format($item->harga_beli / 100, 2, ',', '.') }}
             </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 whitespace-nowrap text-right">
                 Rp {{ number_format($item->harga_pokok / 100, 2, ',', '.') }}
             </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 whitespace-nowrap text-right">
                 Rp {{ number_format($item->harga_jual / 100, 2, ',', '.') }}
             </td>
-            </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 whitespace-nowrap text-right">
                 {{ $item->diskon_value }} %
             </td>
-            <td class="px-6 py-4">
-                {{ $item->pajak?->nama }}
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+                {{ $item->pajak?->kode }}
             </td>
             <td class="px-6 py-4">
-                {{ $item->status }}
+                <div
+                    class="text-xs font-semibold inline-block py-1 px-2 whitespace-nowrap rounded-full {{ $item->status == 'active' ? 'text-green-600 bg-green-200' : 'text-red-600 bg-red-200' }}">
+                    {{ $item->status == 'active' ? 'Aktif' : 'Nonaktif' }}</div>
             </td>
             <td class="px-6 py-4">
-                {{ $item->stok }}
+                <div
+                    class="text-xs font-semibold inline-block py-1 px-2 whitespace-nowrap rounded-full {{ $item->stok == 0 ? 'text-red-600 bg-gray-200' : ($item->stok <= $item->stok_minimum ? 'text-yellow-600 bg-yellow-200' : 'text-green-600 bg-green-200') }}">
+                    {{ $item->stok }} {{ $item->satuan->kode }}</div>
             </td>
             <td class="flex items-center px-6 py-4 space-x-2">
                 @if ($item->trashed())
@@ -83,7 +98,7 @@
                         <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
                             Are you sure you want to delete this supplier?
                         </p>
-                        <form class="space-y-6" action="{{ route('supplier.destroy', $item->id) }}" method="POST">
+                        <form class="space-y-6" action="{{ route('barang.destroy', $item->id) }}" method="POST">
                             @csrf
                             @method('DELETE')
 
@@ -110,6 +125,9 @@
 <!-- Script untuk semua fungsi Alpine.js -->
 <script>
     document.addEventListener('alpine:init', () => {
+        // Event bus untuk komunikasi antar komponen
+        window.componentRegistry = window.componentRegistry || {};
+
         // Komponen untuk perhitungan harga
         Alpine.data('priceCalculator', (itemId, item = {}) => ({
             // Menyimpan item ID untuk referensi
@@ -137,10 +155,10 @@
 
             /**
              * Inisialisasi komponen
-             * Digunakan untuk memuat data berdasarkan item ID
+             * Digunakan untuk memuat data berdasarkan item ID 
              */
             init() {
-                // Isi data harga dari database - Perbaikan: menggunakan this.itemData bukan itemData yang tidak terdefinisi
+                // Isi data harga dari database
                 this.price.hargaBeli = this.itemData.harga_beli || 0;
                 this.price.hargaPokok = this.itemData.harga_pokok || 0;
                 this.price.hargaJual = this.itemData.harga_jual || 0;
@@ -159,7 +177,29 @@
                             this.recalculateAll();
                         }
                     }
+
+                    // Daftarkan komponen ini ke registry setelah selesai inisialisasi
+                    this.registerComponent();
+
+                    // Beritahu komponen lain bahwa priceCalculator sudah siap
+                    window.dispatchEvent(new CustomEvent('priceCalculator:ready', {
+                        detail: {
+                            itemId: this.itemId
+                        }
+                    }));
                 });
+            },
+
+            /**
+             * Mendaftarkan komponen ke registry global untuk memudahkan akses
+             */
+            registerComponent() {
+                if (!window.componentRegistry.priceCalculator) {
+                    window.componentRegistry.priceCalculator = {};
+                }
+
+                // Simpan referensi ke komponen ini berdasarkan itemId
+                window.componentRegistry.priceCalculator[this.itemId] = this;
             },
 
             /**
@@ -255,15 +295,12 @@
                     this.recalculateAll();
                 }
 
-                // Hitung ulang diskon jika diskonCalculator ada
-                this.$nextTick(() => {
-                    // Cari komponen diskonCalculator dengan itemId yang sama
-                    const diskonComponent = document.querySelector(
-                        `[x-data="diskonCalculator('${this.itemId}')"]`);
-                    if (diskonComponent && diskonComponent.__x) {
-                        diskonComponent.__x.getUnobservedData().hitungDiskon();
+                // Beritahu komponen diskon bahwa harga telah berubah
+                window.dispatchEvent(new CustomEvent('price:updated', {
+                    detail: {
+                        itemId: this.itemId
                     }
-                });
+                }));
             },
 
             /**
@@ -371,14 +408,12 @@
                         this.price.margin = ((profit / hargaJual) * 100).toFixed(2);
                         this.displayMargin = this.formatPercentage(this.price.margin);
 
-                        // Update diskon calculator jika ada
-                        this.$nextTick(() => {
-                            const diskonComponent = document.querySelector(
-                                `[x-data="diskonCalculator('${this.itemId}')"]`);
-                            if (diskonComponent && diskonComponent.__x) {
-                                diskonComponent.__x.getUnobservedData().hitungDiskon();
+                        // Beritahu komponen diskon bahwa harga telah berubah
+                        window.dispatchEvent(new CustomEvent('price:updated', {
+                            detail: {
+                                itemId: this.itemId
                             }
-                        });
+                        }));
                     }
                 } finally {
                     this.isUpdating = false;
@@ -421,14 +456,12 @@
                         this.price.markup = ((profit / hargaPokok) * 100).toFixed(2);
                         this.displayMarkup = this.formatPercentage(this.price.markup);
 
-                        // Update diskon calculator jika ada
-                        this.$nextTick(() => {
-                            const diskonComponent = document.querySelector(
-                                `[x-data="diskonCalculator('${this.itemId}')"]`);
-                            if (diskonComponent && diskonComponent.__x) {
-                                diskonComponent.__x.getUnobservedData().hitungDiskon();
+                        // Beritahu komponen diskon bahwa harga telah berubah
+                        window.dispatchEvent(new CustomEvent('price:updated', {
+                            detail: {
+                                itemId: this.itemId
                             }
-                        });
+                        }));
                     }
                 } finally {
                     this.isUpdating = false;
@@ -442,6 +475,17 @@
                 if (this.isUpdating) return;
                 this.formatCurrencyInput('hargaJual');
                 // recalculateAll() sudah dipanggil dalam formatCurrencyInput
+            },
+
+            /**
+             * Metode untuk dipanggil dari komponen lain
+             * Mengembalikan data harga saat ini
+             */
+            getPriceData() {
+                return {
+                    hargaJual: this.price.hargaJual,
+                    hargaPokok: this.price.hargaPokok
+                };
             }
         }));
 
@@ -455,16 +499,77 @@
             hargaSetelahDiskon: 0,
             marginSetelahDiskon: 0,
             markupSetelahDiskon: 0,
+            isReady: false, // Flag untuk menandakan apakah komponen sudah siap
+            priceCalculatorReady: false, // Flag untuk menandakan apakah priceCalculator sudah tersedia
 
             init() {
-                // Isi data diskon dari database - Perbaikan: menggunakan this.itemData bukan itemData yang tidak terdefinisi
+                // Isi data diskon dari database
                 this.diskonPersen = this.itemData.diskon_value || 0;
                 this.displayDiskonPersen = this.formatPercentage(this.diskonPersen);
 
-                // Hitung diskon pada inisialisasi
-                this.$nextTick(() => {
-                    this.hitungDiskon();
+                // Daftarkan komponen ini ke registry
+                this.registerComponent();
+
+                // Tambahkan listener untuk event dari priceCalculator
+                window.addEventListener('priceCalculator:ready', (event) => {
+                    // Cek apakah event ini untuk item yang sama
+                    if (event.detail.itemId === this.itemId) {
+                        this.priceCalculatorReady = true;
+                        this.hitungDiskon();
+                    }
                 });
+
+                // Tambahkan listener untuk pembaruan harga
+                window.addEventListener('price:updated', (event) => {
+                    // Cek apakah event ini untuk item yang sama
+                    if (event.detail.itemId === this.itemId) {
+                        this.hitungDiskon();
+                    }
+                });
+
+                // Tambahkan penundaan untuk mencoba mendapatkan priceCalculator
+                // jika event priceCalculator:ready tidak ditangkap
+                setTimeout(() => {
+                    if (!this.priceCalculatorReady) {
+                        if (this.getPriceCalculator()) {
+                            this.priceCalculatorReady = true;
+                            this.hitungDiskon();
+                        }
+                    }
+                }, 300);
+            },
+
+            /**
+             * Mendaftarkan komponen ke registry global untuk memudahkan akses
+             */
+            registerComponent() {
+                if (!window.componentRegistry.diskonCalculator) {
+                    window.componentRegistry.diskonCalculator = {};
+                }
+
+                // Simpan referensi ke komponen ini berdasarkan itemId
+                window.componentRegistry.diskonCalculator[this.itemId] = this;
+            },
+
+            /**
+             * Mendapatkan komponen priceCalculator terkait
+             * @return {Object|null} Komponen priceCalculator atau null jika tidak ditemukan
+             */
+            getPriceCalculator() {
+                // Coba dapatkan dari registry terlebih dahulu
+                if (window.componentRegistry.priceCalculator &&
+                    window.componentRegistry.priceCalculator[this.itemId]) {
+                    return window.componentRegistry.priceCalculator[this.itemId];
+                }
+
+                // Jika tidak ada di registry, coba dapatkan dengan querySelector
+                const priceComponent = document.querySelector(`[data-item-id="${this.itemId}"]`);
+
+                if (priceComponent && priceComponent.__x) {
+                    return priceComponent.__x.getUnobservedData();
+                }
+
+                return null;
             },
 
             formatPercentageInput() {
@@ -485,43 +590,76 @@
             },
 
             hitungDiskon() {
-                // Dapatkan nilai dari komponen priceCalculator dengan ID yang sama
-                const priceComponent = document.querySelector(
-                    `[x-data="priceCalculator('${this.itemId}')"]`);
+                // Cek apakah priceCalculator sudah tersedia
+                const priceCalculator = this.getPriceCalculator();
 
-                if (!priceComponent || !priceComponent.__x) return;
+                if (!priceCalculator) {
+                    console.log('Komponen priceCalculator belum tersedia, mencoba lagi nanti...',
+                        this.itemId);
+                    return;
+                }
 
-                const priceData = priceComponent.__x.getUnobservedData();
+                try {
+                    // Ambil nilai harga jual dan harga pokok langsung dari metode yang disediakan
+                    let priceData;
 
-                // Ambil nilai harga jual dan harga pokok dari komponen
-                let hargaJual = priceData.price.hargaJual || 0;
-                let hargaPokok = priceData.price.hargaPokok || 0;
-
-                // Hitung nominal diskon
-                const diskonPersenFloat = parseFloat(this.diskonPersen);
-                this.diskonNominal = Math.round((hargaJual * diskonPersenFloat) / 100);
-
-                // Hitung harga setelah diskon
-                this.hargaSetelahDiskon = hargaJual - this.diskonNominal;
-
-                // Hitung margin dan markup setelah diskon
-                if (this.hargaSetelahDiskon > 0) {
-                    const profitSetelahDiskon = this.hargaSetelahDiskon - hargaPokok;
-
-                    // Hitung margin setelah diskon (dengan presisi 2 desimal)
-                    this.marginSetelahDiskon = (profitSetelahDiskon / this.hargaSetelahDiskon) *
-                        100;
-
-                    // Hitung markup setelah diskon (jika harga pokok > 0)
-                    if (hargaPokok > 0) {
-                        this.markupSetelahDiskon = (profitSetelahDiskon / hargaPokok) * 100;
+                    // Ambil data menggunakan metode yang disediakan jika ada
+                    if (typeof priceCalculator.getPriceData === 'function') {
+                        priceData = priceCalculator.getPriceData();
                     } else {
+                        // Fallback ke akses langsung jika metode tidak tersedia
+                        priceData = {
+                            hargaJual: priceCalculator.price.hargaJual || 0,
+                            hargaPokok: priceCalculator.price.hargaPokok || 0
+                        };
+                    }
+
+                    // Log untuk debugging
+                    console.log('hitungDiskon dijalankan dengan:', {
+                        diskonPersen: this.diskonPersen,
+                        hargaJual: priceData.hargaJual,
+                        hargaPokok: priceData.hargaPokok
+                    });
+
+                    // Hitung nominal diskon
+                    const diskonPersenFloat = parseFloat(this.diskonPersen);
+                    this.diskonNominal = Math.round((priceData.hargaJual * diskonPersenFloat) /
+                        100);
+
+                    // Hitung harga setelah diskon
+                    this.hargaSetelahDiskon = priceData.hargaJual - this.diskonNominal;
+
+                    // Hitung margin dan markup setelah diskon
+                    if (this.hargaSetelahDiskon > 0) {
+                        const profitSetelahDiskon = this.hargaSetelahDiskon - priceData.hargaPokok;
+
+                        // Hitung margin setelah diskon (dengan presisi 2 desimal)
+                        this.marginSetelahDiskon = (profitSetelahDiskon / this.hargaSetelahDiskon) *
+                            100;
+
+                        // Hitung markup setelah diskon (jika harga pokok > 0)
+                        if (priceData.hargaPokok > 0) {
+                            this.markupSetelahDiskon = (profitSetelahDiskon / priceData
+                                .hargaPokok) * 100;
+                        } else {
+                            this.markupSetelahDiskon = 0;
+                        }
+                    } else {
+                        this.marginSetelahDiskon = 0;
                         this.markupSetelahDiskon = 0;
                     }
-                } else {
-                    this.marginSetelahDiskon = 0;
-                    this.markupSetelahDiskon = 0;
+
+                    // Tandai komponen sebagai siap
+                    this.isReady = true;
+                } catch (error) {
+                    console.error('Error saat menghitung diskon:', error);
                 }
+            },
+
+            updateDiskon(value) {
+                // Fungsi untuk memperbarui nilai diskon dari luar (jika diperlukan)
+                this.displayDiskonPersen = value;
+                this.formatPercentageInput();
             },
 
             formatCurrency(value) {
@@ -549,5 +687,13 @@
                 return numValue.toFixed(2).replace('.', ',');
             }
         }));
+
+        // Inisialisasi registry global jika belum ada
+        if (!window.componentRegistry) {
+            window.componentRegistry = {
+                priceCalculator: {},
+                diskonCalculator: {}
+            };
+        }
     });
 </script>

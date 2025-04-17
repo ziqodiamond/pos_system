@@ -34,7 +34,7 @@ class PenjualanController extends Controller
         // Hitung total barang terjual
         $totalBarangTerjual = $penjualanHariIni->flatMap(function ($penjualan) {
             return $penjualan->details;
-        })->sum('qty_base');
+        })->sum('kuantitas');
 
         // Hitung total omset
         // Catatan: Pastikan format uang konsisten di seluruh aplikasi

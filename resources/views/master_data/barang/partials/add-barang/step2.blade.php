@@ -1,6 +1,6 @@
 <div class="grid grid-cols-2 gap-4">
     <!-- Kolom Kiri (Harga) -->
-    <div x-data="priceCalculator">
+    <div x-data="priceCalculatorAdd">
         <!-- Harga Beli -->
         <label for="harga_beli" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga Beli</label>
         <div class="relative">
@@ -69,7 +69,7 @@
         // Mendefinisikan komponen Alpine.js untuk pengelolaan harga
         document.addEventListener('alpine:init', () => {
             // Komponen utama untuk mengelola semua input harga dan perhitungan
-            Alpine.data('priceCalculator', () => ({
+            Alpine.data('priceCalculatorAdd', () => ({
                 // Objek yang menyimpan semua nilai harga (sebagai nilai numerik)
                 price: {
                     hargaBeli: 0,
@@ -338,7 +338,7 @@
             <label for="pajak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pajak</label>
             <div class="relative">
                 <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()" autocomplete="off"
-                    placeholder="Cari Pajak..."
+                    placeholder="Cari Pajak..." required
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
 
 
@@ -364,7 +364,7 @@
                 Satuan</label>
             <div class="relative">
                 <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()" autocomplete="off"
-                    placeholder="Cari Satuan..."
+                    placeholder="Cari Satuan..." required
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
 
 
@@ -386,7 +386,7 @@
         </div>
 
         <!-- Diskon Field dengan informasi tambahan -->
-        <div x-data="diskonCalculator">
+        <div x-data="diskonCalculatorAdd">
             <label for="diskon" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
                 (%)</label>
             <input type="text" id="diskon_display" x-model="displayDiskonPersen" @input="hitungDiskon()"
@@ -436,7 +436,7 @@
 <script>
     document.addEventListener('alpine:init', () => {
         // Komponen untuk mengelola diskon dan efeknya
-        Alpine.data('diskonCalculator', () => ({
+        Alpine.data('diskonCalculatorAdd', () => ({
             diskonPersen: 0,
             displayDiskonPersen: '0,00',
             diskonNominal: 0,

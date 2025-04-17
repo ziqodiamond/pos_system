@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\GudangMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'gudang' => GudangMiddleware::class,
             'admin' => AdminMiddleware::class,
             'super_admin' => SuperAdminMiddleware::class,
+            'role' => RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

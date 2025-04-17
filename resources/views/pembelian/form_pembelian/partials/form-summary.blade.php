@@ -94,14 +94,14 @@
             <span>Total</span>
             <span class="flex items-center justify-end mr-2"
                 x-text="'Rp ' + formatNumber(calculateGrandTotal())"></span>
-            <input type="text" name="grand_total" :value="toDbValue(formData.grandTotal)">
+            <input type="hidden" name="grand_total" :value="toDbValue(formData.grandTotal)">
         </div>
 
         <!-- Total (untuk lunas) -->
         <div class="flex justify-between items-center text-sm font-medium mt-5" x-show="formData.lunas">
             <span>Total</span>
             <span class="flex items-center justify-end" x-text="'Rp ' + formatNumber(calculateGrandTotal())"></span>
-            <input type="text" name="grand_total" :value="toDbValue(formData.grandTotal)">
+            <input type="hiddem" name="grand_total" :value="toDbValue(formData.grandTotal)">
         </div>
 
         <!-- Uang Muka -->

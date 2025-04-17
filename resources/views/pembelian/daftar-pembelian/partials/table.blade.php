@@ -1,4 +1,14 @@
-<x-master-table :route="'pembelian'" :items="$pembelian" :columns="['No Ref', 'Tanggal Pembelian', 'Tanggal Masuk', 'Supplier', 'Total Barang', 'Subtotal', 'Total', 'Status']">
+<x-master-table :route="'pembelian'" :items="$pembelian" :columns="[
+    'No Ref',
+    'Tanggal Pembelian',
+    'Tanggal Masuk',
+    'Supplier',
+    'Total Barang',
+    'Subtotal',
+    'Total',
+    'Status',
+    '',
+]">
     <!-- Form Bulk Aksi Terpisah -->
 
     @forelse ($pembelian as $item)
@@ -25,6 +35,11 @@
                     <span
                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
                         Proses
+                    </span>
+                @elseif ($item->status === 'received')
+                    <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                        Diterima
                     </span>
                 @elseif ($item->status === 'completed')
                     <span
@@ -233,20 +248,19 @@
                             </div>
                         </div>
                     </div>
-
                     @if ($item->status === 'processing')
-                        <x-base-modal :id="'completeModal-' . $item->id" title="Selesaikan Pembelian" triggerText="Selesai"
+                        <x-base-modal :id="'completeModal-' . $item->id" title="Selesaikan Pembelian" triggerText="Terima"
                             triggerClass="font-medium text-green-600 dark:text-green-500 hover:underline">
                             <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                                Apakah anda yakin untuk menyelesaikan pembelian ini?
+                                Apakah anda yakin telah menerima pembelian ini?
                             </p>
-                            <form class="space-y-6" action="{{ route('pembelian.selesai', $item->id) }}"
+                            <form class="space-y-6" action="{{ route('pembelian.terima', $item->id) }}"
                                 method="POST">
                                 @csrf
                                 @method('PATCH')
                                 <button
                                     class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                                    Selesai
+                                    Terima
                                 </button>
                             </form>
                         </x-base-modal>
@@ -267,21 +281,6 @@
                             </form>
                         </x-base-modal>
                     @endif
-
-                    <x-base-modal :id="'deleteModal-' . $item->id" title="Hapus Kategori" triggerText="Hapus"
-                        triggerClass="font-medium text-red-600 dark:text-red-500 hover:underline">
-                        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-                            Apakah anda yakin menghapus kategori {{ $item->nama }}?
-                        </p>
-                        <form class="space-y-6" action="{{ route('customer.destroy', $item->id) }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button
-                                class="w-full text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-                                Hapus
-                            </button>
-                        </form>
-                    </x-base-modal>
                 @endif
             </td>
         </tr>

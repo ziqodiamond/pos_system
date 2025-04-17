@@ -1,7 +1,7 @@
 <x-layout>
     <div>
         @include('components.breadcrumbs')
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mt-4 mb-6">
             <h1 class="text-2xl font-bold">Master Data</h1>
         </div>
 
@@ -39,6 +39,16 @@
                 </svg>
 
                 <span class="font-semibold text-center text-xs sm:text-xs md:text-sm lg:text-md">Data Customer</span>
+            </a>
+            <a href="{{ route('user.index') }}"
+                class="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 dark:bg-gray-700 w-28 h-28 xs:w-28 xs:h-28 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:h-36 lg:w-36 xl:h-40 xl:w-40 transition duration-300 ease-in-out transform hover:scale-105">
+                <svg class="w-[48px] h-[48px] text-gray-800 dark:text-white mb-3" xmlns="http://www.w3.org/2000/svg"
+                    width="24" height="24" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                    <path
+                        d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5" />
+                </svg>
+
+                <span class="font-semibold text-center text-xs sm:text-xs md:text-sm lg:text-md">Data Pengguna</span>
             </a>
 
             <a href="{{ route('satuan.index') }}"

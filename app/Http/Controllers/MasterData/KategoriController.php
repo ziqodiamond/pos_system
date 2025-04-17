@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\MasterData;
 
-use App\Http\Controllers\BreadcrumbController;
-use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\BreadcrumbController;
 
 class KategoriController extends Controller
 {
@@ -182,5 +184,79 @@ class KategoriController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    public function generatePDF(Request $request)
+    {
+        // Mempersiapkan query untuk data kategori
+        $query = Kategori::query();
+
+        // Gunakan withCount untuk menghitung jumlah barang pada setiap kategori
+        $query->withCount('barang');
+
+        // Dan juga load relasi barang (untuk menampilkan daftar barang)
+        $query->with('barang:id,kategori_id,nama');
+
+        // Filter berdasarkan status jika ada
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter berdasarkan kode jika ada
+        if ($request->filled('kode')) {
+            $query->where('kode', 'like', '%' . $request->kode . '%');
+        }
+
+        // Filter berdasarkan nama jika ada
+        if ($request->filled('nama')) {
+            $query->where('nama', 'like', '%' . $request->nama . '%');
+        }
+
+        // Urutkan data
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Ambil semua data kategori yang sesuai filter
+        $kategoris = $query->get();
+
+        // Hitung total kategori dan barang
+        $totalItems = $kategoris->count();
+        $totalBarang = $kategoris->sum('barang_count');
+
+        // Ambil data pengaturan toko dari database
+        $settingQuery = Setting::whereIn('key', ['toko_nama', 'toko_alamat', 'toko_kota', 'toko_provinsi', 'toko_telepon', 'toko_email', 'toko_npwp'])
+            ->pluck('value', 'key')
+            ->toArray();
+
+        // Siapkan data toko untuk laporan
+        $toko = [
+            'nama' => $settingQuery['toko_nama'] ?? env('TOKO_NAMA', 'Nama Toko'),
+            'alamat' => $settingQuery['toko_alamat'] ?? env('TOKO_ALAMAT', 'Alamat Toko'),
+            'kota' => $settingQuery['toko_kota'] ?? env('TOKO_KOTA', 'Jakarta'),
+            'provinsi' => $settingQuery['toko_provinsi'] ?? env('TOKO_PROVINSI', 'DKI Jakarta'),
+            'telepon' => $settingQuery['toko_telepon'] ?? env('TOKO_TELEPON', 'Telepon Toko'),
+            'email' => $settingQuery['toko_email'] ?? env('TOKO_EMAIL', 'Email Toko'),
+            'npwp' => $settingQuery['toko_npwp'] ?? env('TOKO_NPWP', 'NPWP Toko'),
+        ];
+
+        // Siapkan data untuk view PDF
+        $data = [
+            'kategoris' => $kategoris,
+            'tanggal_cetak' => now()->format('d-m-Y H:i:s'),
+            'filter' => $request->all(),
+            'total_items' => $totalItems,
+            'total_barang' => $totalBarang,
+            'toko' => $toko,
+        ];
+
+        // Load view PDF dan convert ke PDF
+        $pdf = PDF::loadView('master_data.kategori.pdf.kategori-pdf', $data);
+
+        // Atur paper size ke A4
+        $pdf->setPaper('a4', 'portrait');
+
+        // Download PDF dengan nama dinamis
+        return $pdf->stream('laporan-kategori-' . now()->format('dmY-His') . '.pdf');
     }
 }

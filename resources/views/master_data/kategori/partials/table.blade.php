@@ -1,4 +1,4 @@
-<x-master-table :route="'kategori'" :items="$kategori" :columns="['Kode', 'Nama', 'Status']">
+<x-master-table :route="'kategori'" :items="$kategori" :columns="['Kode', 'Nama', 'Status', '']">
     <!-- Form Bulk Aksi Terpisah -->
 
     @forelse ($kategori as $item)

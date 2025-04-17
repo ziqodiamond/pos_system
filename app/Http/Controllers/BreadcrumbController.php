@@ -27,6 +27,7 @@ class BreadcrumbController extends Controller
                             'konversi.index' => ['name' => 'Konversi', 'url' => route('konversi.index')],
                             'pajak.index' => ['name' => 'Pajak', 'url' => route('pajak.index')],
                             'satuan.index' => ['name' => 'Satuan', 'url' => route('satuan.index')],
+                            'user.index' => ['name' => 'Pengguna', 'url' => route('user.index')],
                         ],
                     ],
                     'pembelian.index' => [
@@ -50,25 +51,32 @@ class BreadcrumbController extends Controller
                     'inventori.index' => [
                         'name' => 'Inventori',
                         'url' => route('inventori.index'),
+                        'children' => [
+                            'barang-keluar.index' => ['name' => 'Formulir Barang Keluar', 'url' => route('barang-keluar.index')],
+                            'stok-barang.index' => ['name' => 'Stok Barang', 'url' => route('stok-barang.index')],
+                            'mutasi.index' => ['name' => 'Mutasi Barang Keluar', 'url' => route('mutasi.index')],
+                        ],
+                    ],
+                    'laporan.index' => [
+                        'name' => 'Laporan',
+                        'url' => route('laporan.index'),
+                        'children' => [
+                            'laporan.laba-rugi' => ['name' => 'Laba Rugi', 'url' => route('laporan.laba-rugi')],
+                            'laporan.pajak' => ['name' => 'Pajak', 'url' => route('laporan.pajak')],
+                            'laporan.hutang.index' => ['name' => 'Hutang', 'url' => route('laporan.hutang.index')],
+                            'laporan.pembelian.index' => ['name' => 'Pembelian', 'url' => route('laporan.pembelian.index')],
+                            'laporan.penjualan.index' => ['name' => 'Penjualan', 'url' => route('laporan.pajak')],
+                            'laporan.kasir' => ['name' => 'Penjualan Kasir', 'url' => route('laporan.kasir')],
+                            'laporan.barang-keluar.index' => ['name' => 'Mutasi Barang Keluar', 'url' => route('laporan.barang-keluar.index')],
+                            'laporan.barang-masuk.index' => ['name' => 'Mutasi Barang Masuk', 'url' => route('laporan.barang-masuk.index')],
+                            'laporan.stok-minimum.index' => ['name' => 'Stok Minimum', 'url' => route('laporan.stok-minimum.index')],
+                        ],
+                    ],
+                    'setting.index' => [
+                        'name' => 'Pengaturan',
+                        'url' => route('settings.index'),
 
                     ],
-
-                    // 'laporan.index' => [
-                    //     'name' => 'Laporan',
-                    //     'url' => route('laporan.index'),
-                    //     'children' => [
-                    //         'pembelian.form' => ['name' => 'Form Pembelian', 'url' => route('laporan.form')],
-
-                    //     ],
-                    // ],
-                    // 'setting.index' => [
-                    //     'name' => 'pembelian',
-                    //     'url' => route('setting.index'),
-                    //     'children' => [
-                    //         'pembelian.form' => ['name' => 'Form Pembelian', 'url' => route('setting.form')],
-
-                    //     ],
-                    // ],
                 ]
             ],
         ];

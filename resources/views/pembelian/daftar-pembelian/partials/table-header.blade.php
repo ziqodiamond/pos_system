@@ -41,7 +41,7 @@
                         <button type="button"
                             @click="showModal=true; actionType='selesai'; confirmMessage='Selesai massal pembelian terpilih?'"
                             class="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                            Selesai
+                            Diterima
                         </button>
                     </li>
                     <li class="hover:bg-gray-100 dark:hover:bg-gray-600" id="selesaiAction">

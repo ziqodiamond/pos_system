@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Penjualan;
 
 use Carbon\Carbon;
 use App\Models\Barang;
+use App\Models\Setting;
 use App\Models\Customer;
 use App\Models\Kategori;
 use App\Models\Penjualan;
@@ -12,6 +13,7 @@ use App\Models\BarangKeluar;
 use Illuminate\Http\Request;
 use App\Models\DetailPembelian;
 use App\Models\DetailPenjualan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -38,7 +40,10 @@ class TransaksiController extends Controller
      */
     public function store(Request $request)
     {
+        // Hapus dd() yang tidak diperlukan
+
         Log::info('Mulai proses store penjualan', ['request' => $request->all()]);
+
         // Validasi request
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
@@ -82,30 +87,43 @@ class TransaksiController extends Controller
             // Memproses setiap item dalam transaksi
             foreach ($request->items as $item) {
                 Log::info('Proses item', $item);
-                // Simpan detail penjualan
+
+                // Hitung harga pokok rata-rata FIFO untuk barang keluar
+                $hargaPokokInfo = $this->hitungHargaPokokFIFO($item['barang_id'], $item['kuantitas']);
+
+                // Ambil harga satuan dari perhitungan FIFO
+                $hargaSatuan = $hargaPokokInfo['harga_satuan'];
+
+                // Hitung subtotal berdasarkan harga pokok × kuantitas
+                $subtotalHargaPokok = $hargaSatuan * $item['kuantitas'];
+
+                // Simpan detail penjualan dengan tambahan harga pokok dari FIFO
                 $detailPenjualan = new DetailPenjualan();
                 $detailPenjualan->penjualan_id = $penjualan->id;
                 $detailPenjualan->barang_id = $item['barang_id'];
                 $detailPenjualan->nama_barang = $item['nama_barang'];
                 $detailPenjualan->harga_satuan = $item['harga_dengan_pajak']; // Harga sudah termasuk pajak
-                $detailPenjualan->harga_diskon = $item['harga_setelah_diskon'];
+                $detailPenjualan->harga_diskon = $item['harga_diskon'];
                 $detailPenjualan->pajak_value = $item['pajak_value'];
                 $detailPenjualan->diskon_value = $item['diskon_value'];
-                $detailPenjualan->diskon_nominal = $item['diskon_nominal_dasar'];
+                $detailPenjualan->diskon_nominal = $item['diskon_nominal'];
                 $detailPenjualan->kuantitas = $item['kuantitas'];
                 $detailPenjualan->satuan_id = $item['satuan_id'];
                 $detailPenjualan->total_diskon = $item['total_diskon'];
                 $detailPenjualan->pajak = $item['total_pajak'];
                 $detailPenjualan->subtotal = $item['subtotal'];
                 $detailPenjualan->total = $item['total'];
+                // Tambahkan harga pokok dari FIFO
+                $detailPenjualan->harga_pokok = $hargaSatuan;
                 $detailPenjualan->save();
 
-                // Hitung harga pokok rata-rata FIFO untuk barang keluar
-                $hargaPokokInfo = $this->hitungHargaPokokFIFO($item['barang_id'], $item['kuantitas']);
-                $hargaSatuan = $hargaPokokInfo['harga_satuan'];
-                $subtotal = $hargaPokokInfo['subtotal'];
+                Log::info('Detail penjualan disimpan dengan harga pokok', [
+                    'detail_id' => $detailPenjualan->id,
+                    'harga_pokok' => $hargaSatuan,
+                    'subtotal_hpp' => $subtotalHargaPokok
+                ]);
 
-                // Simpan barang keluar dengan harga_satuan dan subtotal dari FIFO
+                // Simpan barang keluar dengan harga_satuan (harga pokok) dan subtotal (harga pokok × kuantitas)
                 $barangKeluar = new BarangKeluar();
                 $barangKeluar->barang_id = $item['barang_id'];
                 $barangKeluar->user_id = auth()->id(); // Menggunakan ID user yang sedang login
@@ -113,7 +131,7 @@ class TransaksiController extends Controller
                 $barangKeluar->kuantitas = $item['kuantitas'];
                 $barangKeluar->satuan_id = $item['satuan_id'];
                 $barangKeluar->harga_satuan = $hargaSatuan; // Menggunakan harga pokok dari FIFO
-                $barangKeluar->subtotal = $subtotal; // Menggunakan subtotal dari FIFO
+                $barangKeluar->subtotal = $subtotalHargaPokok; // Menggunakan subtotal hasil perkalian harga pokok × kuantitas
                 $barangKeluar->jenis = 'penjualan';
                 $barangKeluar->keterangan = 'Penjualan No. ' . $penjualan->no_ref; // Menggunakan no_ref yang dihasilkan
                 $barangKeluar->tanggal_keluar = Carbon::now()->format('Y-m-d');
@@ -122,7 +140,8 @@ class TransaksiController extends Controller
                 Log::info('Barang keluar disimpan', [
                     'barang_keluar_id' => $barangKeluar->id,
                     'harga_satuan_fifo' => $hargaSatuan,
-                    'subtotal_fifo' => $subtotal
+                    'subtotal' => $subtotalHargaPokok,
+                    'kuantitas' => $item['kuantitas']
                 ]);
 
                 // Update stok barang (FIFO)
@@ -133,6 +152,15 @@ class TransaksiController extends Controller
             DB::commit();
 
             Log::info('Transaksi berhasil disimpan', ['penjualan_id' => $penjualan->id]);
+
+            if ($request->cetak === 'true') {
+                return redirect()
+                    ->back() // arahkan balik ke halaman utama
+                    ->with([
+                        'success' => 'Transaksi berhasil disimpan dan siap dicetak.',
+                        'print_id' => $penjualan->id,
+                    ]);
+            }
             // Mengembalikan pengguna ke halaman sebelumnya dengan pesan sukses
             return redirect()->back()->with('success', 'Transaksi berhasil disimpan');
         } catch (\Exception $e) {
@@ -206,17 +234,16 @@ class TransaksiController extends Controller
 
         // Hitung rata-rata harga pokok berdasarkan FIFO
         $hargaSatuan = $totalHargaPokok / $kuantitas;
-        $subtotal = $totalHargaPokok;
 
         Log::debug('Hasil perhitungan harga pokok FIFO', [
             'harga_satuan' => $hargaSatuan,
-            'subtotal' => $subtotal,
+            'total_harga_pokok' => $totalHargaPokok,
             'detail_pengurangan' => $detailPengurangan
         ]);
 
         return [
             'harga_satuan' => $hargaSatuan,
-            'subtotal' => $subtotal,
+            'total_harga_pokok' => $totalHargaPokok, // Ganti nama untuk kejelasan
             'detail_pengurangan' => $detailPengurangan
         ];
     }
@@ -292,5 +319,35 @@ class TransaksiController extends Controller
             ]);
             throw new \Exception("Stok barang {$barang->nama} tidak mencukupi");
         }
+    }
+
+    public function print($id)
+    {
+        // Ambil data transaksi dengan semua relasinya
+        $transaksi = Penjualan::with(['customer', 'details.barang.satuan', 'details.barang.pajak'])->findOrFail($id);
+
+        $query = Setting::whereIn('key', ['toko_nama', 'toko_alamat', 'toko_telepon', 'toko_email', 'toko_npwp'])
+            ->pluck('value', 'key')
+            ->toArray();
+        // Ambil data toko/perusahaan dari konfigurasi
+        $toko = [
+            'nama' => $query['toko_nama'] ?? env('TOKO_NAMA', 'Nama Toko'),
+            'alamat' => $query['toko_alamat'] ?? env('TOKO_ALAMAT', 'Alamat Toko'),
+            'telepon' => $query['toko_telepon'] ?? env('TOKO_TELEPON', 'Telepon Toko'),
+            'email' => $query['toko_email'] ?? env('TOKO_EMAIL', 'Email Toko'),
+            'npwp' => $query['toko_npwp'] ?? env('TOKO_NPWP', 'NPWP Toko'),
+        ];
+
+        // Generate PDF
+        $pdf = PDF::loadView('penjualan.transaksi.print', compact('transaksi', 'toko'));
+
+        // Setel ukuran kertas (untuk struk kasir)
+        $pdf->setPaper('a4', 'portrait');
+
+        // Opsi untuk menampilkan PDF langsung di browser
+        return $pdf->stream('Transaksi-' . $transaksi->nomor . '.pdf');
+
+        // Atau bisa digunakan opsi ini untuk mengunduh PDF langsung
+        // return $pdf->download('Transaksi-'.$transaksi->nomor.'.pdf');
     }
 }

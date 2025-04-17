@@ -31,11 +31,26 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $date = now()->format('d');  // Get current date (01-31)
+        $month = now()->format('m'); // Get current month (01-12)
+        $year = now()->format('y');  // Get current year (23)
+
+        $prefix = $date . $month . $year;
+
+        $latestUser = User::orderBy('kode', 'desc')
+            ->where('kode', 'like', $prefix . '%')
+            ->first();
+
+        $lastNumber = $latestUser ? intval(substr($latestUser->kode, -8)) : 0;
+        $newNumber = str_pad($lastNumber + 1, 8, '0', STR_PAD_LEFT);
+        $kode = $prefix . $newNumber;
+
         $user = User::create([
+            'kode' => $kode,
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -43,8 +58,6 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('login', absolute: false));
     }
 }

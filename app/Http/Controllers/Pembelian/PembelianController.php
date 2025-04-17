@@ -46,7 +46,6 @@ class PembelianController extends Controller
      */
     public function store(Request $request)
     {
-        // Hapus dd($request->all()) karena dapat menghentikan eksekusi
 
         // Validasi input
         $validatedData = $request->validate([
@@ -55,8 +54,8 @@ class PembelianController extends Controller
             'tanggal' => 'required|date',
             'no_referensi' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
-            'lunas' => 'boolean',
-            'include_pajak' => 'boolean',
+            'lunas' => 'nullable|in:on',
+            'include_pajak' => 'nullable|in:on',
             'subtotalBeforeDiscount' => 'required|numeric|min:0',
             'subtotalAfterDiscount' => 'required|numeric|min:0',
             'diskon' => 'nullable|numeric|min:0',

@@ -132,44 +132,82 @@
             ]" />
 
             <script>
-                function handleStatusFilterChange() {
-                    const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Fungsi untuk menangani perubahan tampilan tombol aksi berdasarkan filter status yang dipilih
+                    function handleStatusFilterChange() {
+                        // Ambil nilai status yang sedang tercentang dari filter (radio/checkbox bernama 'Status')
+                        const selectedStatus = document.querySelector('input[name="Status"]:checked')?.value;
 
-                    const editAction = document.getElementById('editAction');
-                    const deleteAction = document.getElementById('deleteAction');
-                    const restoreAction = document.getElementById('restoreAction');
-                    const forceDeleteAction = document.getElementById('forceDeleteAction');
+                        // Ambil elemen tombol aksi berdasarkan ID-nya
+                        const editAction = document.getElementById('editAction');
+                        const deleteAction = document.getElementById('deleteAction');
+                        const restoreAction = document.getElementById('restoreAction');
+                        const forceDeleteAction = document.getElementById('forceDeleteAction');
 
-                    if (selectedStatus === 'deleted') {
-                        editAction.classList.add('hidden');
-                        deleteAction.classList.add('hidden');
-                        restoreAction.classList.remove('hidden');
-                        forceDeleteAction.classList.remove('hidden');
-                    } else {
-                        editAction.classList.remove('hidden');
-                        deleteAction.classList.remove('hidden');
-                        restoreAction.classList.add('hidden');
-                        forceDeleteAction.classList.add('hidden');
+                        // Jika status yang dipilih adalah "deleted", sembunyikan tombol edit/delete dan tampilkan restore/force delete
+                        if (selectedStatus === 'deleted') {
+                            editAction.classList.add('hidden');
+                            deleteAction.classList.add('hidden');
+                            restoreAction.classList.remove('hidden');
+                            forceDeleteAction.classList.remove('hidden');
+                        } else {
+                            // Jika status selain deleted, tampilkan tombol edit/delete dan sembunyikan restore/force delete
+                            editAction.classList.remove('hidden');
+                            deleteAction.classList.remove('hidden');
+                            restoreAction.classList.add('hidden');
+                            forceDeleteAction.classList.add('hidden');
+                        }
                     }
-                }
 
-                // Panggil fungsi pas filter berubah
-                document.querySelectorAll('.filter-input').forEach(input => {
-                    input.addEventListener('click', function() {
-                        const allInputs = document.querySelectorAll('.filter-input');
+                    // Menambahkan event listener ke setiap elemen dengan class "filter-input"
+                    document.querySelectorAll('.filter-input').forEach(input => {
+                        input.addEventListener('click', function(event) {
+                            // Ambil nama grup filter dari atribut name (biasanya digunakan untuk membedakan jenis filter)
+                            const groupName = this.name;
 
-                        // Uncheck semua input kecuali yang diklik
-                        allInputs.forEach(i => i.checked = false);
+                            // Cek apakah checkbox sebelumnya dalam keadaan diceklis menggunakan dataset
+                            const wasChecked = this.dataset.wasChecked === 'true';
 
-                        // Toggle hanya yang diklik (kalau sebelumnya unchecked, jadi checked)
-                        this.checked = !this.checked;
+                            // Uncheck semua input lain dalam grup yang sama dan reset status dataset
+                            document.querySelectorAll(`.filter-input[name="${groupName}"]`).forEach(i => {
+                                i.checked = false;
+                                i.dataset.wasChecked = 'false';
+                            });
 
-                        handleStatusFilterChange(); // Panggil ulang biar tombol update
+                            // Toggle kondisi checkbox:
+                            // - Jika sebelumnya tidak dicentang (wasChecked false), maka aktifkan dan tandai sebagai true
+                            // - Jika sebelumnya dicentang (wasChecked true), maka biarkan unchecked dan tandai sebagai false
+                            if (!wasChecked) {
+                                this.checked = true;
+                                this.dataset.wasChecked = 'true';
+                            } else {
+                                this.dataset.wasChecked = 'false';
+                            }
+
+                            // Simpan filter terakhir yang dipilih di variabel global agar bisa digunakan di tempat lain
+                            window.lastSelectedFilter = window.lastSelectedFilter || {};
+                            if (this.checked) {
+                                window.lastSelectedFilter[groupName] = this;
+                            } else {
+                                window.lastSelectedFilter[groupName] = null;
+                            }
+
+                            // Jika fungsi handleSearchAndFilter tersedia (terdefinisi di script lain), panggil untuk update hasil
+                            if (typeof handleSearchAndFilter === 'function') {
+                                handleSearchAndFilter();
+                            }
+
+                            // Update tampilan tombol berdasarkan status yang dipilih
+                            handleStatusFilterChange();
+                        });
+
+                        // Saat inisialisasi pertama, simpan status awal checkbox ke dalam dataset.wasChecked
+                        input.dataset.wasChecked = input.checked ? 'true' : 'false';
                     });
-                });
 
-                // Panggil juga saat pertama load
-                handleStatusFilterChange();
+                    // Panggil fungsi untuk mengatur tampilan tombol saat pertama kali halaman dimuat
+                    handleStatusFilterChange();
+                });
             </script>
         </div>
     </div>

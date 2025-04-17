@@ -19,6 +19,7 @@ class DetailPenjualan extends Model
         'penjualan_id',
         'barang_id',
         'nama_barang',
+        'harga_pokok',
         'harga_satuan',
         'harga_diskon',
         'pajak_value',

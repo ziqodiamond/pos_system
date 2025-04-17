@@ -20,8 +20,9 @@
 
             <!-- Satuan Konversi Component -->
             <div class="mt-4" x-data="dropdownKonversi()">
-                <label for="satuan_konversi"
-                    class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">Satuan Konversi</label>
+                <label for="satuan_konversi" class="block mt-4 mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Satuan Konversi
+                </label>
                 <div class="relative">
                     <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()"
                         autocomplete="off" placeholder="Cari Satuan Konversi..."
@@ -34,14 +35,16 @@
                             </li>
                         </template>
                     </ul>
-                    <input type="hidden" name="satuan_konversi_id" :value="selected.id">
+                    <!-- Gunakan metode getSelectedId() untuk mendapatkan ID secara aman -->
+                    <input type="hidden" name="satuan_konversi_id" x-bind:value="getSelectedId()">
                 </div>
             </div>
 
             <!-- Satuan Dasar Component -->
             <div class="mt-4" x-data="dropdownDasar()">
-                <label for="satuan_dasar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Satuan
-                    Dasar</label>
+                <label for="satuan_dasar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Satuan Dasar
+                </label>
                 <div class="relative">
                     <input type="text" x-model="search" @input="watchSearch()" @click="openDropdown()"
                         autocomplete="off" placeholder="Cari Satuan Dasar..."
@@ -54,11 +57,12 @@
                             </li>
                         </template>
                     </ul>
-                    <input type="hidden" name="satuan_dasar_id" :value="selected.id">
+                    <!-- Gunakan metode getSelectedId() untuk mendapatkan ID secara aman -->
+                    <input type="hidden" name="satuan_dasar_id" x-bind:value="getSelectedId()">
                 </div>
             </div>
 
-            <script></script>
+
 
 
 

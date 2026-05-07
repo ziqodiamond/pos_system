@@ -18,8 +18,8 @@
             <td class="px-6 py-4">{{ $item->nama_barang ?? '-' }}</td>
             <td class="px-6 py-4">{{ $item->kuantitas }}</td>
             <td class="px-6 py-4">{{ $item->satuan->nama }}</td>
-            <td class="px-6 py-4">Rp {{ number_format($item->harga_satuan / 100, 2, ',', '.') }}</td>
-            <td class="px-6 py-4">Rp {{ number_format($item->subtotal / 100, 2, ',', '.') }}</td>
+            <td class="px-6 py-4">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
+            <td class="px-6 py-4">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
             <td class="px-6 py-4">{{ $item->jenis }}</td>
             <td class="px-6 py-4">{{ $item->keterangan }}</td>
 

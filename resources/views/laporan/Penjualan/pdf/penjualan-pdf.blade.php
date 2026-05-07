@@ -144,7 +144,7 @@
                     ({{ $filter['sort_order'] == 'asc' ? 'A-Z' : 'Z-A' }})
                 </td>
                 <td>Total Nilai Penjualan</td>
-                <td>: Rp {{ number_format($total_penjualan / 100, 2, ',', '.') }}</td>
+                <td>: Rp {{ number_format($total_penjualan, 0, ',', '.') }}</td>
             </tr>
         </table>
     </div>
@@ -176,10 +176,10 @@
                     <td class="{{ 'payment-' . strtolower($penjualan->metode_pembayaran) }}">
                         {{ ucfirst($penjualan->metode_pembayaran) }}
                     </td>
-                    <td class="text-right">{{ number_format($penjualan->subtotal / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($penjualan->total_diskon / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($penjualan->total_pajak / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($penjualan->grand_total / 100, 2, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($penjualan->subtotal, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($penjualan->total_diskon, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($penjualan->total_pajak, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($penjualan->grand_total, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
@@ -190,10 +190,10 @@
         <tfoot>
             <tr class="total-row">
                 <td colspan="6">Total</td>
-                <td class="text-right">{{ number_format($penjualans->sum('subtotal') / 100, 2, ',', '.') }}</td>
-                <td class="text-right">{{ number_format($penjualans->sum('total_diskon') / 100, 2, ',', '.') }}</td>
-                <td class="text-right">{{ number_format($penjualans->sum('total_pajak') / 100, 2, ',', '.') }}</td>
-                <td class="text-right">{{ number_format($penjualans->sum('grand_total') / 100, 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($penjualans->sum('subtotal'), 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($penjualans->sum('total_diskon'), 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($penjualans->sum('total_pajak'), 0, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($penjualans->sum('grand_total'), 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>
@@ -253,9 +253,9 @@
                         <td>{{ $detail['nama_barang'] }}</td>
                         <td>{{ $detail['satuan'] }}</td>
                         <td class="text-right">{{ $detail['kuantitas'] }}</td>
-                        <td class="text-right">{{ number_format($detail['harga_satuan'] / 100, 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($detail['total_diskon'] / 100, 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($detail['subtotal'] / 100, 2, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($detail['harga_satuan'], 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($detail['total_diskon'], 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($detail['subtotal'], 0, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -268,8 +268,8 @@
                     <td colspan="4">Total</td>
                     <td class="text-right">{{ $total_barang }}</td>
                     <td></td>
-                    <td class="text-right">{{ number_format($total_diskon / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($total_penjualan / 100, 2, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($total_diskon, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($total_penjualan, 0, ',', '.') }}</td>
                 </tr>
             </tfoot>
         </table>

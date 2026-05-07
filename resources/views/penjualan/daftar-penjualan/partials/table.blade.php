@@ -30,15 +30,15 @@
             <td class="px-6 py-4 whitespace-nowrap">{{ $item->customer?->nama ?? '-' }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ $item->total_item }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right">Rp
-                {{ number_format($item->subtotal / 100, 2, ',', '.') }}</td>
+                {{ number_format($item->subtotal, 0, ',', '.') }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right">Rp
-                {{ number_format($item->total_diskon / 100, 2, ',', '.') }}</td>
+                {{ number_format($item->total_diskon, 0, ',', '.') }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right">Rp
-                {{ number_format($item->total_pajak / 100, 2, ',', '.') }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right">Rp {{ number_format($item->dpp / 100, 2, ',', '.') }}
+                {{ number_format($item->total_pajak, 0, ',', '.') }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right">Rp {{ number_format($item->dpp, 0, ',', '.') }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">Rp
-                {{ number_format($item->grand_total / 100, 2, ',', '.') }}</td>
+                {{ number_format($item->grand_total, 0, ',', '.') }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ ucfirst($item->metode_pembayaran) }}</td>
             <td class="flex items-center px-6 py-4 space-x-3">
 

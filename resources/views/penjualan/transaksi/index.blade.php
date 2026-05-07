@@ -263,7 +263,7 @@
                             <input type="text" id="cash-amount" x-model="cashAmountFormatted"
                                 @input="formatRupiahInput" @blur="formatFinalRupiah"
                                 class="w-full border border-gray-300 rounded-md pl-9 pr-3 py-2 text-sm text-right"
-                                placeholder="0,00">
+                                placeholder="0">
                         </div>
 
                         <div class="mt-2 flex justify-between text-sm font-medium">
@@ -588,7 +588,7 @@
                 // Update pada bagian init()
                 init() {
                     this.loadData();
-                    this.cashAmountFormatted = '0,00'; // Inisialisasi format awal
+                    this.cashAmountFormatted = '0'; // Inisialisasi format awal
 
                     // Setup keyboard shortcuts
                     window.addEventListener('keydown', (e) => {
@@ -1045,135 +1045,52 @@
                     form.appendChild(input);
                 },
 
-                // Format currency untuk tampilan - konversi dari nilai sen (integer) ke format rupiah
+                // Lightweight currency helpers (assume backend stores integer rupiah)
                 formatCurrency(amount) {
-                    // Konversi dari sen ke rupiah dengan memindahkan koma desimal 2 digit
-                    const rupiah = amount / 100;
-
-                    return new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }).format(rupiah);
+                    // Return string with Rp prefix and no decimals. Use global helper if available.
+                    const n = amount ?? 0;
+                    const formatted = (typeof window.formatCurrency === 'function') ? window.formatCurrency(n) : Number(n).toLocaleString('id-ID');
+                    return 'Rp ' + formatted;
                 },
 
-                // Format untuk input rupiah ke nilai sen (menyimpan data dalam bentuk integer)
-                formatRupiahToSen(amount) {
-                    // Menghilangkan semua karakter non-numerik
-                    const numericValue = String(amount).replace(/[^0-9]/g, '');
-
-                    // Jika input mungkin sudah dalam bentuk rupiah dengan koma desimal yang tidak terlihat
-                    // Kita perlu menambahkan dua angka 0 di belakang sesuai kebutuhan
-                    if (numericValue.length <= 2) {
-                        // Jika kurang dari 3 digit, asumsikan ini adalah sen
-                        return parseInt(numericValue.padEnd(2, '0'));
-                    } else {
-                        // Input sudah dalam format rupiah+sen, tidak perlu transformasi lebih lanjut
-                        return parseInt(numericValue);
-                    }
+                // Parse a rupiah input string (e.g. "1.000") into integer rupiah
+                parseRupiahInput(value) {
+                    if (!value) return 0;
+                    const digits = String(value).replace(/[^0-9]/g, '');
+                    return digits === '' ? 0 : parseInt(digits, 10);
                 },
 
-                // Format dari nilai sen (integer) ke rupiah untuk tampilan dengan dua desimal
-                formatSenToRupiah(amount) {
-                    // Konversi sen ke rupiah dengan 2 desimal
-                    const rupiah = amount / 100;
-                    return new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }).format(rupiah);
-                },
-
+                // Handle typing in cash input (no decimals, integer rupiah)
                 formatRupiahInput(event) {
-                    // Menyimpan posisi kursor sebelum pemformatan
                     const input = event.target;
-                    const cursorPos = input.selectionStart;
-                    const originalLength = this.cashAmountFormatted.length;
+                    const raw = input.value.replace(/[^0-9]/g, '');
 
-                    // Menghapus semua karakter non-digit
-                    let value = this.cashAmountFormatted.replace(/\D/g, '');
-
-                    // Menyimpan panjang nilai sebelum diformat
-                    const beforeLength = value.length;
-
-                    // Menambahkan titik sebagai pemisah ribuan dan koma untuk desimal
-                    if (value === '') {
-                        this.cashAmountFormatted = '0,00';
+                    if (raw === '') {
+                        this.cashAmountFormatted = '0';
                         this.cashAmount = 0;
                     } else {
-                        // Menentukan jumlah digit
-                        const length = value.length;
-
-                        // Jika kurang dari 3 digit, tambahkan leading zero untuk desimal
-                        if (length === 1) {
-                            value = '00' + value;
-                        } else if (length === 2) {
-                            value = '0' + value;
-                        }
-
-                        // Ambil 2 digit terakhir sebagai desimal
-                        const decimal = value.substring(value.length - 2);
-                        // Sisanya sebagai bagian integer
-                        const integer = value.substring(0, value.length - 2) || '0';
-
-                        // Format dengan pemisah ribuan
-                        const formatted = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                        // Update model dengan format dan nilai sebenarnya
-                        this.cashAmountFormatted = formatted + ',' + decimal;
-                        this.cashAmount = parseInt(value);
+                        this.cashAmount = parseInt(raw, 10);
+                        this.cashAmountFormatted = this.cashAmount.toLocaleString('id-ID');
                     }
 
-                    // Hitung kembalian berdasarkan nilai baru
                     this.calculateChange();
 
-                    // Perhitungan posisi kursor yang benar setelah pemformatan
+                    // restore cursor reasonably (simple approach)
                     setTimeout(() => {
-                        // Hitung berapa banyak titik pemisah ribuan sebelum posisi kursor
-                        const beforeDots = this.cashAmountFormatted.substring(0, cursorPos)
-                            .split('.').length - 1;
-                        const afterDots = this.cashAmountFormatted.split('.').length - 1;
-
-                        // Selisih panjang string setelah pemformatan
-                        const lengthDiff = this.cashAmountFormatted.length - originalLength;
-
-                        // Hitung posisi kursor yang baru dengan mempertimbangkan titik pemisah ribuan
-                        let newCursorPos = cursorPos + lengthDiff;
-
-                        // Jika ada perubahan jumlah titik pemisah ribuan, sesuaikan posisi kursor
-                        if (beforeDots !== afterDots) {
-                            newCursorPos = cursorPos + (afterDots - beforeDots);
-                        }
-
-                        // Pastikan posisi kursor tidak melewati batas string
-                        newCursorPos = Math.min(newCursorPos, this.cashAmountFormatted.length);
-                        newCursorPos = Math.max(newCursorPos, 0);
-
-                        // Setel posisi kursor ke posisi yang benar
-                        input.setSelectionRange(newCursorPos, newCursorPos);
+                        const pos = Math.min(input.value.length, input.selectionStart || 0);
+                        input.setSelectionRange(pos, pos);
                     }, 0);
                 },
 
+                // Ensure final formatted value on blur
                 formatFinalRupiah() {
-                    // Pastikan format akhir sudah benar saat input kehilangan fokus
-                    if (this.cashAmountFormatted === '') {
-                        this.cashAmountFormatted = '0,00';
+                    if (!this.cashAmount || this.cashAmount === 0) {
+                        this.cashAmountFormatted = '0';
                         this.cashAmount = 0;
-                    }
-
-                    // Pastikan desimal selalu ditampilkan dengan 2 digit
-                    const parts = this.cashAmountFormatted.split(',');
-                    if (parts.length > 1) {
-                        if (parts[1].length < 2) {
-                            this.cashAmountFormatted = parts[0] + ',' + parts[1].padEnd(2, '0');
-                        }
                     } else {
-                        this.cashAmountFormatted = this.cashAmountFormatted + ',00';
+                        this.cashAmountFormatted = this.cashAmount.toLocaleString('id-ID');
                     }
 
-                    // Hitung kembalian berdasarkan nilai final
                     this.calculateChange();
                 }
             }));

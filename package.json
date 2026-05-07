@@ -18,6 +18,7 @@
         "vite": "^6.2.1"
     },
     "dependencies": {
+        "@alpinejs/collapse": "^3.15.12",
         "flowbite": "^3.1.2",
         "sweetalert2": "^11.17.2"
     }

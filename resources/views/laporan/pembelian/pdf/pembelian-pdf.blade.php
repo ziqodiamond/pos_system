@@ -154,7 +154,7 @@
             <div>
                 <div class="summary-item">
                     <span>Total Nilai Pembelian:</span>
-                    <span>Rp {{ number_format($totalPembelian / 100, 2, ',', '.') }}</span>
+                    <span>Rp {{ number_format($totalPembelian, 0, ',', '.') }}</span>
                 </div>
                 <div class="summary-item">
                     <span>Total Barang Dibeli:</span>
@@ -168,15 +168,15 @@
             <div>
                 <div class="summary-item">
                     <span>Total Pajak:</span>
-                    <span>Rp {{ number_format($totalPajak / 100, 2, ',', '.') }}</span>
+                    <span>Rp {{ number_format($totalPajak, 0, ',', '.') }}</span>
                 </div>
                 <div class="summary-item">
                     <span>Total Diskon:</span>
-                    <span>Rp {{ number_format($totalDiskon / 100, 2, ',', '.') }}</span>
+                    <span>Rp {{ number_format($totalDiskon, 0, ',', '.') }}</span>
                 </div>
                 <div class="summary-item">
                     <span>Total Biaya Lainnya:</span>
-                    <span>Rp {{ number_format($totalBiayaLainnya / 100, 2, ',', '.') }}</span>
+                    <span>Rp {{ number_format($totalBiayaLainnya, 0, ',', '.') }}</span>
                 </div>
             </div>
         </div>
@@ -200,11 +200,11 @@
             @forelse($rincianPembelian as $item)
                 <tr>
                     <td>{{ $item['tanggal'] }}</td>
-                    <td class="text-right">Rp {{ number_format($item['total_pembelian'] / 100, 2, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item['total_pembelian'], 0, ',', '.') }}</td>
                     <td class="text-right">{{ number_format($item['total_barang'], 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item['pajak'] / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item['diskon'] / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item['biaya_lainnya'] / 100, 2, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item['pajak'], 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item['diskon'], 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item['biaya_lainnya'], 0, ',', '.') }}</td>
                     <td class="text-right">{{ $item['jumlah_transaksi'] }}</td>
                 </tr>
             @empty
@@ -216,11 +216,11 @@
         <tfoot>
             <tr class="total-row">
                 <td>Total</td>
-                <td class="text-right">Rp {{ number_format($totalPembelian / 100, 2, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($totalPembelian, 0, ',', '.') }}</td>
                 <td class="text-right">{{ number_format($totalBarangDibeli, 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($totalPajak / 100, 2, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($totalDiskon / 100, 2, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($totalBiayaLainnya / 100, 2, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($totalPajak, 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($totalDiskon, 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($totalBiayaLainnya, 0, ',', '.') }}</td>
                 <td class="text-right">{{ count($pembelian) }}</td>
             </tr>
         </tfoot>
@@ -244,9 +244,9 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $item->barang->nama ?? 'Barang tidak ditemukan' }}</td>
                     <td class="text-right">{{ number_format($item->total_qty, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->total_value / 100, 2, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->total_value, 0, ',', '.') }}</td>
                     <td class="text-right">Rp
-                        {{ $item->total_qty > 0 ? number_format($item->total_value / $item->total_qty / 100, 2, ',', '.') : 0 }}
+                        {{ $item->total_qty > 0 ? number_format($item->total_value / $item->total_qty, 0, ',', '.') : 0 }}
                     </td>
                 </tr>
             @empty
@@ -281,10 +281,10 @@
                     <td>{{ Carbon\Carbon::parse($item->tanggal_pembelian)->format('d-m-Y') }}</td>
                     <td>{{ $item->supplier->nama ?? 'Supplier tidak ditemukan' }}</td>
                     <td>{{ $item->status }}</td>
-                    <td class="text-right">Rp {{ number_format($item->subtotal / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->diskon_value / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->pajak_value / 100, 2, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->total / 100, 2, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->diskon_value, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->pajak_value, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
@@ -295,10 +295,10 @@
         <tfoot>
             <tr class="total-row">
                 <td colspan="5">Total</td>
-                <td class="text-right">Rp {{ number_format($pembelian->sum('subtotal') / 100, 2, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($pembelian->sum('diskon_value') / 100, 2, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($pembelian->sum('pajak_value') / 100, 2, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($pembelian->sum('total') / 100, 2, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($pembelian->sum('subtotal'), 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($pembelian->sum('diskon_value'), 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($pembelian->sum('pajak_value'), 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($pembelian->sum('total'), 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>

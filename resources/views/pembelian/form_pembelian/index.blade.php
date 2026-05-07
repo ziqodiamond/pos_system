@@ -212,7 +212,7 @@
                         case 'barang':
                             this.formData.items[index].barang_id = item.id;
                             this.formData.items[index].barang_nama = item.nama;
-                            this.formData.items[index].hargaSatuan = item.harga_beli / 100 || 0;
+                            this.formData.items[index].hargaSatuan = item.harga_beli || 0;
                             this.formData.items[index].pajak_id = item.pajak_id || null;
                             // Reset satuan yang terpilih jika barang berubah
                             this.formData.items[index].satuan_dasar_id = item.satuan_id;
@@ -505,7 +505,7 @@
                 // Fungsi untuk konversi nilai database ke nilai display
                 fromDbValue(dbValue) {
                     // Bagi dengan 100 untuk mendapatkan nilai desimal
-                    return dbValue / 100;
+                    return dbValue;
                 },
 
                 // Fungsi untuk menghitung harga tanpa pajak untuk setiap item

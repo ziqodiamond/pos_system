@@ -56,7 +56,7 @@
                                     <dt class="text-sm font-medium text-gray-500">Omset</dt>
                                     <dd
                                         class="mt-1 text-xl font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
-                                        Rp {{ number_format($omset / 100, 0, ',', '.') }}
+                                        Rp {{ number_format($omset, 0, ',', '.') }}
                                     </dd>
                                 </div>
                             </div>
@@ -92,7 +92,7 @@
                                     <dt class="text-sm font-medium text-gray-500">Total Pengeluaran</dt>
                                     <dd
                                         class="mt-1 text-xl font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
-                                        Rp {{ number_format($total_pengeluaran / 100, 0, ',', '.') }}
+                                        Rp {{ number_format($total_pengeluaran, 0, ',', '.') }}
                                     </dd>
                                 </div>
                             </div>
@@ -127,7 +127,7 @@
                                     <dt class="text-sm font-medium text-gray-500">Laba Kotor</dt>
                                     <dd
                                         class="mt-1 text-xl font-semibold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">
-                                        Rp {{ number_format($laba_kotor / 100, 0, ',', '.') }}
+                                        Rp {{ number_format($laba_kotor, 0, ',', '.') }}
                                     </dd>
                                 </div>
                             </div>
@@ -568,7 +568,7 @@
             const options = {
                 series: [{
                     name: 'Penjualan',
-                    data: data.map(item => item.total / 100) // Bagi dengan 100
+                    data: data.map(item => item.total)
                 }],
                 chart: {
                     type: 'bar',
@@ -604,7 +604,7 @@
                     },
                     labels: {
                         formatter: function(val) {
-                            return formatRupiah(val * 100); // Kalikan dengan 100 karena nilai sudah dibagi
+                            return formatRupiah(val);
                         }
                     }
                 },
@@ -619,7 +619,7 @@
                     },
                     y: {
                         formatter: function(val) {
-                            return 'Rp ' + formatRupiah(val * 100); // Kalikan dengan 100 karena nilai sudah dibagi
+                            return 'Rp ' + formatRupiah(val);
                         }
                     },
                     marker: {
@@ -632,7 +632,7 @@
                         w
                     }) {
                         const bulan = w.globals.labels[dataPointIndex];
-                        const nilai = formatRupiah(series[seriesIndex][dataPointIndex] * 100);
+                        const nilai = formatRupiah(series[seriesIndex][dataPointIndex]);
 
                         return `<div class="p-2 rounded-md bg-white shadow-md border border-gray-200">
                     <div class="font-semibold text-gray-700">${bulan}</div>
@@ -733,13 +733,11 @@
 
         // Fungsi untuk memformat angka ke format rupiah
         function formatRupiah(angka) {
-            // Bagi dengan 100 untuk mengubah dari sen ke rupiah
-            const rupiah = angka / 100;
-            // Format dengan pemisah ribuan dan 2 digit desimal
+            // Angka diasumsikan berupa rupiah utuh (integer)
             return new Intl.NumberFormat('id-ID', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(rupiah);
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(angka);
         }
 
 
@@ -790,7 +788,7 @@
                     if (window.penjualanBulananChart) {
                         window.penjualanBulananChart.updateSeries([{
                             name: 'Penjualan',
-                            data: data.penjualan_bulanan.map(item => item.total / 100) // Bagi dengan 100
+                            data: data.penjualan_bulanan.map(item => item.total)
                         }]);
                         window.penjualanBulananChart.updateOptions({
                             xaxis: {

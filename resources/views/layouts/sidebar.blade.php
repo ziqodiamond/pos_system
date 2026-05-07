@@ -52,15 +52,23 @@
         </div>
 
         <!-- Menu Navigation -->
-        <nav class="flex-grow overflow-y-auto">
+
+        <nav class="flex-grow overflow-y-auto" x-data="{
+            openDropdown: null,
+            isHovered: null,
+            toggleDropdown(menu) {
+                this.openDropdown = this.openDropdown === menu ? null : menu;
+            },
+            isActive(route) {
+                return '{{ Request::route()->getName() }}' === route || '{{ Request::route()->getName() }}'.startsWith(route + '.');
+            }
+        }">
             <ul class="p-4 space-y-1">
+                <!-- Dashboard Menu Item -->
                 <li>
                     <a href="{{ route('dashboard') }}"
                         class="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                        :class="{
-                            'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': '{{ Request::route()->getName() }}'
-                            === 'dashboard'
-                        }">
+                        :class="{ 'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': isActive('dashboard') }">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -69,99 +77,337 @@
                         <span class="font-medium">Dashboard</span>
                     </a>
                 </li>
-                @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super_admin')
-                    <li>
-                        <a href="{{ route('master-data.index') }}" wire:navigate
-                            class="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                            :class="{
-                                'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': '{{ Request::route()->getName() }}'
-                                === 'master-data.index'
-                            }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-                            </svg>
-                            <span class="font-medium">Master Data</span>
-                        </a>
-                    </li>
-                @endif
+
+                <!-- Master Data Dropdown Menu -->
                 @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super_admin' || Auth::user()->role === 'gudang')
-                    <li>
-                        <a href="{{ route('pembelian.index') }}" wire:navigate
-                            class="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                            :class="{
-                                'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': '{{ Request::route()->getName() }}'
-                                === 'pembelian.index'
-                            }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                            </svg>
-                            <span class="font-medium">Pembelian</span>
-                        </a>
+                    <li @mouseenter="isHovered = 'master-data'" @mouseleave="isHovered = null">
+                        <div class="relative">
+                            <!-- Master Data Header - Klik langsung ke index -->
+                            <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                                :class="{ 'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': isActive(
+                                        'master-data') }">
+                                <a href="{{ route('master-data.index') }}" class="flex items-center flex-grow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                                    </svg>
+                                    <span class="font-medium">Master Data</span>
+                                </a>
+                                <!-- Toggle dropdown icon -->
+                                <button @click.prevent.stop="toggleDropdown('master-data')" class="focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform"
+                                        :class="{ 'rotate-180': openDropdown === 'master-data' || isHovered === 'master-data' }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Master Data Submenu Items - Tampil saat di-hover atau dropdown diklik -->
+                            <div x-show="openDropdown === 'master-data' || isHovered === 'master-data'" x-collapse
+                                class="pl-8 mt-1 space-y-1 overflow-hidden">
+                                <a href="{{ route('barang.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'barang.index') }">
+                                    <span class="font-medium">Data Barang</span>
+                                </a>
+                                <a href="{{ route('supplier.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'supplier.index') }">
+                                    <span class="font-medium">Supplier</span>
+                                </a>
+                                <a href="{{ route('customer.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'customer.index') }">
+                                    <span class="font-medium">Customer</span>
+                                </a>
+                                <a href="{{ route('user.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'user.index') }">
+                                    <span class="font-medium">Pengguna</span>
+                                </a>
+                                <a href="{{ route('satuan.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'satuan.index') }">
+                                    <span class="font-medium">Data Satuan</span>
+                                </a>
+                                <a href="{{ route('konversi.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'konversi.index') }">
+                                    <span class="font-medium">Nilai Konversi Satuan</span>
+                                </a>
+                                <a href="{{ route('pajak.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'pajak.index') }">
+                                    <span class="font-medium">Pajak</span>
+                                </a>
+                                <a href="{{ route('kategori.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'kategori.index') }">
+                                    <span class="font-medium">Data Kategori</span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
                 @endif
+
+                <!-- Pembelian Dropdown Menu -->
+                @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super_admin')
+                    <li @mouseenter="isHovered = 'pembelian'" @mouseleave="isHovered = null">
+                        <div class="relative">
+                            <!-- Pembelian Header - Klik langsung ke index -->
+                            <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                                :class="{ 'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': isActive(
+                                    'pembelian') }">
+                                <a href="{{ route('pembelian.index') }}" class="flex items-center flex-grow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                    <span class="font-medium">Pembelian</span>
+                                </a>
+                                <!-- Toggle dropdown icon -->
+                                <button @click.prevent.stop="toggleDropdown('pembelian')" class="focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform"
+                                        :class="{ 'rotate-180': openDropdown === 'pembelian' || isHovered === 'pembelian' }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Pembelian Submenu Items - Tampil saat di-hover atau dropdown diklik -->
+                            <div x-show="openDropdown === 'pembelian' || isHovered === 'pembelian'" x-collapse
+                                class="pl-8 mt-1 space-y-1 overflow-hidden">
+                                <a href="{{ route('pembelian.create') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'pembelian.create') }">
+                                    <span class="font-medium">Pembelian Baru</span>
+                                </a>
+                                <a href="{{ route('daftar-pembelian.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'daftar-pembelian.index') }">
+                                    <span class="font-medium">Daftar Pembelian</span>
+                                </a>
+                                <a href="{{ route('faktur.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'faktur.index') }">
+                                    <span class="font-medium">Faktur Pembelian</span>
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                @endif
+
+                <!-- Penjualan Dropdown Menu -->
                 @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super_admin' || Auth::user()->role === 'kasir')
-                    <li>
-                        <a href="{{ route('penjualan.index') }}" wire:navigate
-                            class="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                            :class="{
-                                'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': '{{ Request::route()->getName() }}'
-                                === 'penjualan.index'
-                            }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            <span class="font-medium">Penjualan</span>
-                        </a>
+                    <li @mouseenter="isHovered = 'penjualan'" @mouseleave="isHovered = null">
+                        <div class="relative">
+                            <!-- Penjualan Header - Klik langsung ke index -->
+                            <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                                :class="{ 'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': isActive(
+                                    'penjualan') }">
+                                <a href="{{ route('penjualan.index') }}" class="flex items-center flex-grow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <span class="font-medium">Penjualan</span>
+                                </a>
+                                <!-- Toggle dropdown icon -->
+                                <button @click.prevent.stop="toggleDropdown('penjualan')" class="focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform"
+                                        :class="{ 'rotate-180': openDropdown === 'penjualan' || isHovered === 'penjualan' }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Penjualan Submenu Items - Tampil saat di-hover atau dropdown diklik -->
+                            <div x-show="openDropdown === 'penjualan' || isHovered === 'penjualan'" x-collapse
+                                class="pl-8 mt-1 space-y-1 overflow-hidden">
+                                <a href="{{ route('transaksi.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'transaksi.index') }">
+                                    <span class="font-medium">Kasir</span>
+                                </a>
+                                <a href="{{ route('daftar-penjualan.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'daftar-penjualan.index') }">
+                                    <span class="font-medium">Daftar Penjualan</span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
                 @endif
+
+                <!-- Inventori Dropdown Menu -->
                 @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super_admin' || Auth::user()->role === 'gudang')
-                    <li>
-                        <a href="{{ route('inventori.index') }}" wire:navigate
-                            class="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                            :class="{
-                                'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': '{{ Request::route()->getName() }}'
-                                === 'inventori.index'
-                            }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>
-                            <span class="font-medium">Inventori</span>
-                        </a>
+                    <li @mouseenter="isHovered = 'inventori'" @mouseleave="isHovered = null">
+                        <div class="relative">
+                            <!-- Inventori Header - Klik langsung ke index -->
+                            <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                                :class="{ 'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': isActive(
+                                    'inventori') }">
+                                <a href="{{ route('inventori.index') }}" class="flex items-center flex-grow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                    </svg>
+                                    <span class="font-medium">Inventori</span>
+                                </a>
+                                <!-- Toggle dropdown icon -->
+                                <button @click.prevent.stop="toggleDropdown('inventori')" class="focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform"
+                                        :class="{ 'rotate-180': openDropdown === 'inventori' || isHovered === 'inventori' }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Inventori Submenu Items - Tampil saat di-hover atau dropdown diklik -->
+                            <div x-show="openDropdown === 'inventori' || isHovered === 'inventori'" x-collapse
+                                class="pl-8 mt-1 space-y-1 overflow-hidden">
+                                <a href="{{ route('barang-keluar.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'barang-keluar.index') }">
+                                    <span class="font-medium">Barang Keluar</span>
+                                </a>
+                                <a href="{{ route('stok-barang.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'stok-barang.index') }">
+                                    <span class="font-medium">Data Stok Barang</span>
+                                </a>
+                                <a href="{{ route('mutasi.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'mutasi.index') }">
+                                    <span class="font-medium">Mutasi Barang</span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
                 @endif
+
+                <!-- Laporan Dropdown Menu -->
                 @if (Auth::user()->role === 'admin' || Auth::user()->role === 'super_admin')
-                    <li>
-                        <a href="{{ route('laporan.index') }}" wire:navigate
-                            class="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                            :class="{
-                                'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': '{{ Request::route()->getName() }}'
-                                === 'laporan.index'
-                            }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <span class="font-medium">Laporan</span>
-                        </a>
+                    <li @mouseenter="isHovered = 'laporan'" @mouseleave="isHovered = null">
+                        <div class="relative">
+                            <!-- Laporan Header - Klik langsung ke index -->
+                            <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
+                                :class="{ 'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': isActive('laporan') }">
+                                <a href="{{ route('laporan.index') }}" class="flex items-center flex-grow">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <span class="font-medium">Laporan</span>
+                                </a>
+                                <!-- Toggle dropdown icon -->
+                                <button @click.prevent.stop="toggleDropdown('laporan')" class="focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform"
+                                        :class="{ 'rotate-180': openDropdown === 'laporan' || isHovered === 'laporan' }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Laporan Submenu Items - Tampil saat di-hover atau dropdown diklik -->
+                            <div x-show="openDropdown === 'laporan' || isHovered === 'laporan'" x-collapse
+                                class="pl-8 mt-1 space-y-1 overflow-hidden">
+                                <a href="{{ route('laporan.laba-rugi') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.laba-rugi') }">
+                                    <span class="font-medium">Laba Rugi</span>
+                                </a>
+                                <a href="{{ route('laporan.hutang.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.hutang.index') }">
+                                    <span class="font-medium">Hutang</span>
+                                </a>
+                                <a href="{{ route('laporan.pajak') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.pajak') }">
+                                    <span class="font-medium">Pajak</span>
+                                </a>
+                                <a href="{{ route('laporan.pembelian.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.pembelian.index') }">
+                                    <span class="font-medium">Pembelian</span>
+                                </a>
+                                <a href="{{ route('laporan.penjualan.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.penjualan.index') }">
+                                    <span class="font-medium">Penjualan</span>
+                                </a>
+                                <a href="{{ route('laporan.kasir') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.kasir') }">
+                                    <span class="font-medium">Kasir</span>
+                                </a>
+                                <a href="{{ route('laporan.barang-keluar.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.barang-keluar.index') }">
+                                    <span class="font-medium">Barang Keluar</span>
+                                </a>
+                                <a href="{{ route('laporan.barang-masuk.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.barang-masuk.index') }">
+                                    <span class="font-medium">Barang Masuk</span>
+                                </a>
+                                <a href="{{ route('laporan.stok-minimum.index') }}" wire:navigate
+                                    class="flex items-center p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+                                    :class="{ 'bg-blue-50 text-blue-600 dark:bg-gray-700 dark:text-blue-200': isActive(
+                                            'laporan.stok-minimum.index') }">
+                                    <span class="font-medium">Stok Minimum</span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
                 @endif
+
+                <!-- Pengaturan Menu Item -->
                 @if (Auth::user()->role === 'super_admin')
                     <li>
                         <a href="{{ route('settings.index') }}" wire:navigate
                             class="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                            :class="{
-                                'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': '{{ Request::route()->getName() }}'
-                                === 'settings.index'
-                            }">
+                            :class="{ 'bg-blue-100 text-blue-700 dark:bg-gray-600 dark:text-blue-300': isActive('settings') }">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

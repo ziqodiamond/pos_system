@@ -28,11 +28,11 @@
             <td class="px-6 py-4">{{ $item->tanggal_faktur }}</td>
             <td class="px-6 py-4">{{ $item->supplier->nama }}</td>
             <td class="px-6 py-4">{{ $item->pembelian->total_item }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->subtotal / 100, 2, ',', '.') }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->diskon_value / 100, 2, ',', '.') }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->pajak_value / 100, 2, ',', '.') }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->total_tagihan / 100, 2, ',', '.') }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->total_hutang / 100, 2, ',', '.') }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->diskon_value, 0, ',', '.') }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->pajak_value, 0, ',', '.') }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->total_tagihan, 0, ',', '.') }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($item->total_hutang, 0, ',', '.') }}</td>
             <td class="px-6 py-4 whitespace-nowrap">
                 @if ($item->status == 'lunas')
                     <span

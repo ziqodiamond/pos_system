@@ -221,7 +221,7 @@ Deskripsi: Halaman untuk menampilkan laporan pembelian
                                 Total Pembelian
                             </p>
                             <p class="text-xl font-semibold text-gray-900">
-                                Rp {{ number_format($totalPembelian / 100, 2, ',', '.') }}
+                                Rp {{ number_format($totalPembelian, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -263,7 +263,7 @@ Deskripsi: Halaman untuk menampilkan laporan pembelian
                                 Total Pajak
                             </p>
                             <p class="text-xl font-semibold text-gray-900">
-                                Rp {{ number_format($totalPajak / 100, 2, ',', '.') }}
+                                Rp {{ number_format($totalPajak, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -356,7 +356,7 @@ Deskripsi: Halaman untuk menampilkan laporan pembelian
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                                        Rp {{ number_format($item->total / 100, 2, ',', '.') }}
+                                        Rp {{ number_format($item->total, 0, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div x-data="{ open: false }" class="inline-block">

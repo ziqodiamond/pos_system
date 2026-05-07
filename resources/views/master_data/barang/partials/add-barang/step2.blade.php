@@ -80,9 +80,9 @@
                 },
 
                 // Nilai untuk display (format Rupiah dan persen)
-                displayHargaBeli: '0,00',
-                displayHargaPokok: '0,00',
-                displayHargaJual: '0,00',
+                displayHargaBeli: '0',
+                displayHargaPokok: '0',
+                displayHargaJual: '0',
                 displayMarkup: '0,00',
                 displayMargin: '0,00',
 
@@ -101,9 +101,9 @@
                  * Format semua nilai tampilan berdasarkan nilai numerik
                  */
                 formatAllDisplayValues() {
-                    this.displayHargaBeli = this.formatCurrency(this.price.hargaBeli / 100);
-                    this.displayHargaPokok = this.formatCurrency(this.price.hargaPokok / 100);
-                    this.displayHargaJual = this.formatCurrency(this.price.hargaJual / 100);
+                    this.displayHargaBeli = this.formatCurrency(this.price.hargaBeli);
+                    this.displayHargaPokok = this.formatCurrency(this.price.hargaPokok);
+                    this.displayHargaJual = this.formatCurrency(this.price.hargaJual);
                     this.displayMarkup = this.formatPercentage(this.price.markup);
                     this.displayMargin = this.formatPercentage(this.price.margin);
                 },
@@ -111,25 +111,15 @@
                 /**
                  * Format nilai mata uang untuk tampilan
                  * @param {number|string} value - Nilai numerik yang akan diformat
-                 * @return {string} Nilai yang telah diformat (misal: "1.000,00")
+                 * @return {string} Nilai yang telah diformat (misal: "1.000")
                  */
                 formatCurrency(value) {
-                    // Konversi ke string dan pastikan ada nilai
-                    if (!value && value !== 0) return '0,00';
+                    if (!value && value !== 0) return '0';
 
-                    // Konversi ke float dengan 2 desimal
-                    let numValue = parseFloat(value);
+                    let numValue = Number(value);
                     if (isNaN(numValue)) numValue = 0;
 
-                    // Format dengan pemisah ribuan (titik) dan desimal (koma)
-                    // Format dengan 2 angka di belakang koma (sen)
-                    let parts = numValue.toFixed(2).split('.');
-
-                    // Tambahkan pemisah ribuan (titik) untuk bagian integer
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                    // Gabungkan kembali dengan koma sebagai pemisah desimal
-                    return parts.join(',');
+                    return Math.round(numValue).toLocaleString('id-ID');
                 },
 
                 /**
@@ -140,11 +130,9 @@
                 formatPercentage(value) {
                     if (!value && value !== 0) return '0,00';
 
-                    // Konversi ke float dan format dengan 2 desimal
                     let numValue = parseFloat(value);
                     if (isNaN(numValue)) numValue = 0;
 
-                    // Format dengan 2 desimal dan ganti titik dengan koma
                     return numValue.toFixed(2).replace('.', ',');
                 },
 
@@ -155,25 +143,18 @@
                 formatCurrencyInput(field) {
                     if (this.isUpdating) return;
 
-                    // Tentukan field display yang sesuai
                     const displayField = 'display' + field.charAt(0).toUpperCase() + field.slice(1);
 
-                    // Ambil nilai dari display dan konversi format (contoh: "1.234,56" -> 123456)
-                    let inputValue = this[displayField].replace(/\./g, '').replace(',', '.');
-                    if (inputValue === '' || isNaN(parseFloat(inputValue))) {
+                    let inputValue = this[displayField].replace(/[^\d]/g, '');
+                    if (inputValue === '' || isNaN(parseInt(inputValue, 10))) {
                         inputValue = '0';
                     }
 
-                    // Konversi ke float, kalikan 100 untuk menyimpan sen, dan simpan sebagai integer
-                    const numValue = Math.round(parseFloat(inputValue) * 100);
+                    const numValue = parseInt(inputValue, 10);
 
-                    // Update nilai hidden (dalam satuan sen, misal 123456 untuk Rp 1.234,56)
                     this.price[field] = numValue;
+                    this[displayField] = this.formatCurrency(numValue);
 
-                    // Update display dengan format (tampilkan dalam Rp)
-                    this[displayField] = this.formatCurrency(numValue / 100);
-
-                    // Recalculate jika diperlukan (kecuali untuk harga beli)
                     if (field !== 'hargaBeli') {
                         this.recalculateAll();
                     }
@@ -186,22 +167,16 @@
                 formatPercentageInput(field) {
                     if (this.isUpdating) return;
 
-                    // Tentukan field display yang sesuai
                     const displayField = 'display' + field.charAt(0).toUpperCase() + field.slice(1);
 
-                    // Ambil nilai dari display
                     let inputValue = this[displayField].replace(',', '.');
                     if (inputValue === '' || isNaN(parseFloat(inputValue))) {
                         inputValue = '0';
                     }
 
-                    // Konversi ke float dengan 2 desimal
                     const numValue = parseFloat(inputValue).toFixed(2);
 
-                    // Update nilai hidden
                     this.price[field] = numValue;
-
-                    // Update display dengan format
                     this[displayField] = this.formatPercentage(numValue);
                 },
 
@@ -216,22 +191,15 @@
                         const hargaPokok = this.price.hargaPokok;
                         const hargaJual = this.price.hargaJual;
 
-                        // Hanya lakukan perhitungan jika kedua nilai tersedia dan valid
                         if (hargaPokok > 0 && hargaJual > 0) {
-                            // Hitung profit
                             const profit = hargaJual - hargaPokok;
 
-                            // Hitung markup: (profit / hargaPokok) * 100
                             this.price.markup = ((profit / hargaPokok) * 100).toFixed(2);
-
-                            // Hitung margin: (profit / hargaJual) * 100
                             this.price.margin = ((profit / hargaJual) * 100).toFixed(2);
 
-                            // Update display
                             this.displayMarkup = this.formatPercentage(this.price.markup);
                             this.displayMargin = this.formatPercentage(this.price.margin);
                         } else {
-                            // Reset nilai jika tidak bisa dihitung
                             this.price.markup = '0.00';
                             this.price.margin = '0.00';
                             this.displayMarkup = '0,00';
@@ -250,23 +218,17 @@
                     this.isUpdating = true;
 
                     try {
-                        // Ambil harga pokok dan markup
                         const hargaPokok = this.price.hargaPokok;
                         let markup = parseFloat(this.displayMarkup.replace(',', '.'));
 
                         if (isNaN(markup)) markup = 0;
 
-                        // Hanya lakukan perhitungan jika harga pokok valid
                         if (hargaPokok > 0) {
-                            // Hitung harga jual: hargaPokok * (1 + markup/100)
-                            // Pertahankan presisi dengan tidak membulatkan nilai
                             const hargaJual = Math.round(hargaPokok * (1 + (markup / 100)));
 
-                            // Update nilai
                             this.price.hargaJual = hargaJual;
-                            this.displayHargaJual = this.formatCurrency(hargaJual / 100);
+                            this.displayHargaJual = this.formatCurrency(hargaJual);
 
-                            // Update margin
                             const profit = hargaJual - hargaPokok;
                             this.price.margin = ((profit / hargaJual) * 100).toFixed(2);
                             this.displayMargin = this.formatPercentage(this.price.margin);
@@ -284,30 +246,23 @@
                     this.isUpdating = true;
 
                     try {
-                        // Ambil harga pokok dan margin
                         const hargaPokok = this.price.hargaPokok;
                         let margin = parseFloat(this.displayMargin.replace(',', '.'));
 
                         if (isNaN(margin)) margin = 0;
 
-                        // Hanya lakukan perhitungan jika harga pokok valid
                         if (hargaPokok > 0) {
                             let hargaJual;
 
-                            // Hindari division by zero
                             if (margin >= 100) {
-                                hargaJual = hargaPokok * 10; // Nilai tinggi sebagai batas
+                                hargaJual = hargaPokok * 10;
                             } else {
-                                // Hitung harga jual: hargaPokok / (1 - margin/100)
-                                // Pertahankan presisi tanpa pembulatan
                                 hargaJual = Math.round(hargaPokok / (1 - (margin / 100)));
                             }
 
-                            // Update nilai
                             this.price.hargaJual = hargaJual;
-                            this.displayHargaJual = this.formatCurrency(hargaJual / 100);
+                            this.displayHargaJual = this.formatCurrency(hargaJual);
 
-                            // Update markup
                             const profit = hargaJual - hargaPokok;
                             this.price.markup = ((profit / hargaPokok) * 100).toFixed(2);
                             this.displayMarkup = this.formatPercentage(this.price.markup);
@@ -400,13 +355,13 @@
                 <p class="text-gray-700 dark:text-gray-300">
                     <span class="font-medium">Total Diskon:</span>
                     <span class="text-blue-600 dark:text-blue-400"
-                        x-text="'Rp ' + formatCurrency(diskonNominal / 100)"></span>
+                        x-text="'Rp ' + formatCurrency(diskonNominal)"></span>
                     <input type="hidden" name="diskon_nominal" x-model="diskonNominal" />
                 </p>
                 <p class="text-gray-700 dark:text-gray-300">
                     <span class="font-medium">Harga Jual Setelah Diskon:</span>
                     <span class="text-blue-600 dark:text-blue-400"
-                        x-text="'Rp ' + formatCurrency(hargaSetelahDiskon / 100)"></span>
+                        x-text="'Rp ' + formatCurrency(hargaSetelahDiskon)"></span>
                 </p>
                 <p class="text-gray-700 dark:text-gray-300">
                     <span class="font-medium">Margin Setelah Diskon:</span>

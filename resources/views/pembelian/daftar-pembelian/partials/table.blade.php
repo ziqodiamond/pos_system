@@ -28,7 +28,7 @@
             <td class="px-6 py-4">{{ $item->tanggal_masuk ?? '-' }}</td>
             <td class="px-6 py-4">{{ $item->supplier->nama }}</td>
             <td class="px-6 py-4">{{ $item->total_item }}</td>
-            <td class="px-6 py-4">Rp {{ number_format($item->subtotal / 100, 2, ',', '.') }}</td>
+            <td class="px-6 py-4">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
             <td class="px-6 py-4">{{ \App\Models\Pembelian::formatNumber($item->total) }}</td>
             <td class="px-6 py-4 text-center">
                 @if ($item->status === 'processing')

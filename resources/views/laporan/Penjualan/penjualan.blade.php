@@ -245,7 +245,7 @@
                                 Total Penjualan
                             </p>
                             <p class="text-xl font-semibold text-gray-900">
-                                Rp {{ number_format($totalPenjualan / 100, 0, ',', '.') }}
+                                Rp {{ number_format($totalPenjualan, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -287,7 +287,7 @@
                                 Total Omset
                             </p>
                             <p class="text-xl font-semibold text-gray-900">
-                                Rp {{ number_format($totalOmset / 100, 0, ',', '.') }}
+                                Rp {{ number_format($totalOmset, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -354,7 +354,7 @@
                                         {{ $item->metode_pembayaran }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                                        Rp {{ number_format($item->grand_total / 100, 0, ',', '.') }}
+                                        Rp {{ number_format($item->grand_total, 0, ',', '.') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
 

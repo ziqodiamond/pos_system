@@ -176,16 +176,16 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $detail->nama_barang }}</td>
-                    <td class="number">{{ number_format($detail->harga_satuan / 100, 2, ',', '.') }}</td>
+                    <td class="number">{{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
                     <td class="number">{{ $detail->kuantitas }} {{ $detail->barang->satuan->nama ?? 'pcs' }}</td>
                     <td class="number">
                         @if ($detail->diskon_nominal > 0)
-                            {{ number_format($detail->diskon_nominal / 100, 2, ',', '.') }}
+                            {{ number_format($detail->diskon_nominal, 0, ',', '.') }}
                         @else
                             -
                         @endif
                     </td>
-                    <td class="number">{{ number_format($detail->total / 100, 2, ',', '.') }}</td>
+                    <td class="number">{{ number_format($detail->total, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -196,36 +196,36 @@
             <table>
                 <tr>
                     <td class="label">Subtotal</td>
-                    <td class="value">{{ number_format($transaksi->subtotal / 100, 2, ',', '.') }}</td>
+                    <td class="value">{{ number_format($transaksi->subtotal, 0, ',', '.') }}</td>
                 </tr>
                 @if ($transaksi->total_diskon > 0)
                     <tr>
                         <td class="label">Diskon</td>
-                        <td class="value">{{ number_format($transaksi->total_diskon / 100, 2, ',', '.') }}</td>
+                        <td class="value">{{ number_format($transaksi->total_diskon, 0, ',', '.') }}</td>
                     </tr>
                 @endif
                 @if ($transaksi->total_pajak > 0)
                     <tr>
                         <td class="label">Pajak</td>
-                        <td class="value">{{ number_format($transaksi->total_pajak / 100, 2, ',', '.') }}</td>
+                        <td class="value">{{ number_format($transaksi->total_pajak, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td class="label">DPP</td>
-                        <td class="value">{{ number_format($transaksi->dpp / 100, 2, ',', '.') }}</td>
+                        <td class="value">{{ number_format($transaksi->dpp, 0, ',', '.') }}</td>
                     </tr>
                 @endif
                 <tr>
                     <td class="label grand-total">TOTAL</td>
-                    <td class="value grand-total">{{ number_format($transaksi->grand_total / 100, 2, ',', '.') }}</td>
+                    <td class="value grand-total">{{ number_format($transaksi->grand_total, 0, ',', '.') }}</td>
                 </tr>
                 @if ($transaksi->metode_pembayaran === 'tunai' && $transaksi->total_bayar > 0)
                     <tr>
                         <td class="label">Tunai</td>
-                        <td class="value">{{ number_format($transaksi->total_bayar / 100, 2, ',', '.') }}</td>
+                        <td class="value">{{ number_format($transaksi->total_bayar, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td class="label">Kembalian</td>
-                        <td class="value">{{ number_format($transaksi->kembalian / 100, 2, ',', '.') }}</td>
+                        <td class="value">{{ number_format($transaksi->kembalian, 0, ',', '.') }}</td>
                     </tr>
                 @else
                     <tr>

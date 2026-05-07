@@ -227,12 +227,12 @@
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            Rp {{ number_format($item->harga_pokok / 100, 0, ',', '.') }}
+                                            Rp {{ number_format($item->harga_pokok, 0, ',', '.') }}
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             Rp
-                                            {{ number_format(($item->harga_pokok * $item->stok) / 100, 0, ',', '.') }}
+                                            {{ number_format(($item->harga_pokok * $item->stok), 0, ',', '.') }}
                                         </td>
                                     </tr>
                                 @empty

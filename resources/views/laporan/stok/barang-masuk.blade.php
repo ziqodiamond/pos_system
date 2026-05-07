@@ -57,7 +57,7 @@
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Nilai Barang Masuk</p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($totalNilaiBarangMasuk / 100, 0, ',', '.') }}
+                                Rp {{ number_format($totalNilaiBarangMasuk, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -181,11 +181,11 @@
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            Rp {{ number_format($item->harga_satuan / 100, 0, ',', '.') }}
+                                            Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            Rp {{ number_format($item->total / 100, 0, ',', '.') }}
+                                            Rp {{ number_format($item->total, 0, ',', '.') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if ($item->pembelian?->status == 'completed')

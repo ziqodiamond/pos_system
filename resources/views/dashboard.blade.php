@@ -106,7 +106,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
                                     {{ $transaction->details->sum('kuantitas') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right">Rp
-                                    {{ number_format($transaction->grand_total / 100, 0, ',', '.') }}</td>
+                                    {{ number_format($transaction->grand_total, 0, ',', '.') }}</td>
 
                             </tr>
                         @empty

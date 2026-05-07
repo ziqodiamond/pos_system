@@ -170,7 +170,7 @@
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Pendapatan</p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($totalPendapatan / 100, 0, ',', '.') }}
+                                Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -190,7 +190,7 @@
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Laba Kotor</p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($labaKotor / 100, 0, ',', '.') }}
+                                Rp {{ number_format($labaKotor, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -210,7 +210,7 @@
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Laba Bersih</p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($labaBersih / 100, 0, ',', '.') }}
+                                Rp {{ number_format($labaBersih, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -234,7 +234,7 @@
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total HPP</p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($totalHPP / 100, 0, ',', '.') }}
+                                Rp {{ number_format($totalHPP, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -255,7 +255,7 @@
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Barang Keluar Non-Penjualan
                             </p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($biayaOperasional / 100, 0, ',', '.') }}
+                                Rp {{ number_format($biayaOperasional, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -276,7 +276,7 @@
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Pajak</p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($totalPajak / 100, 0, ',', '.') }}
+                                Rp {{ number_format($totalPajak, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>

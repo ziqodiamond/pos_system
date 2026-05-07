@@ -31,13 +31,13 @@
                 {{ $item->kategori->nama }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
-                Rp {{ number_format($item->harga_beli / 100, 2, ',', '.') }}
+                Rp {{ number_format($item->harga_beli, 0, ',', '.') }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
-                Rp {{ number_format($item->harga_pokok / 100, 2, ',', '.') }}
+                Rp {{ number_format($item->harga_pokok, 0, ',', '.') }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
-                Rp {{ number_format($item->harga_jual / 100, 2, ',', '.') }}
+                Rp {{ number_format($item->harga_jual, 0, ',', '.') }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
                 {{ $item->diskon_value }} %
@@ -134,7 +134,7 @@
             itemId: itemId,
             itemData: item ?? {},
 
-            // Objek yang menyimpan semua nilai harga (dalam satuan sen)
+            // Objek yang menyimpan semua nilai harga (dalam satuan Rupiah utuh)
             price: {
                 hargaBeli: 0, // Akan diisi dari database
                 hargaPokok: 0, // Akan diisi dari database
@@ -143,7 +143,7 @@
                 margin: null // Gunakan nilai dari database atau null
             },
 
-            // Nilai untuk display (format Rupiah dan persen)
+            // Nilai untuk display (format Rupiah tanpa desimal)
             displayHargaBeli: '',
             displayHargaPokok: '',
             displayHargaJual: '',
@@ -165,7 +165,7 @@
                 this.price.markup = this.itemData.markup || null;
                 this.price.margin = this.itemData.margin || null;
 
-                // Konversi nilai sen ke Rupiah untuk display
+                // Konversi nilai ke Rupiah untuk display
                 this.formatAllDisplayValues();
 
                 // Pastikan margin dan markup dihitung langsung saat halaman dimuat
@@ -206,9 +206,9 @@
              * Format semua nilai tampilan berdasarkan nilai numerik
              */
             formatAllDisplayValues() {
-                this.displayHargaBeli = this.formatCurrency(this.price.hargaBeli / 100);
-                this.displayHargaPokok = this.formatCurrency(this.price.hargaPokok / 100);
-                this.displayHargaJual = this.formatCurrency(this.price.hargaJual / 100);
+                this.displayHargaBeli = this.formatCurrency(this.price.hargaBeli);
+                this.displayHargaPokok = this.formatCurrency(this.price.hargaPokok);
+                this.displayHargaJual = this.formatCurrency(this.price.hargaJual);
 
                 // Format nilai markup dan margin jika tersedia
                 if (this.price.markup !== null) {
@@ -229,24 +229,18 @@
             /**
              * Format nilai mata uang untuk tampilan
              * @param {number|string} value - Nilai numerik yang akan diformat
-             * @return {string} Nilai yang telah diformat (misal: "800.000,12")
+             * @return {string} Nilai yang telah diformat (misal: "3.000")
              */
             formatCurrency(value) {
                 // Konversi ke string dan pastikan ada nilai
-                if (!value && value !== 0) return '0,00';
+                if (!value && value !== 0) return '0';
 
-                // Konversi ke float dengan 2 desimal
+                // Konversi ke float
                 let numValue = parseFloat(value);
                 if (isNaN(numValue)) numValue = 0;
 
-                // Format dengan pemisah ribuan (titik) dan desimal (koma)
-                let parts = numValue.toFixed(2).split('.');
-
-                // Tambahkan pemisah ribuan (titik) untuk bagian integer
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                // Gabungkan kembali dengan koma sebagai pemisah desimal
-                return parts.join(',');
+                // Format sebagai Rupiah Indonesia tanpa desimal
+                return numValue.toLocaleString('id-ID');
             },
 
             /**
@@ -275,20 +269,20 @@
                 // Tentukan field display yang sesuai
                 const displayField = 'display' + field.charAt(0).toUpperCase() + field.slice(1);
 
-                // Ambil nilai dari display dan konversi format (contoh: "800.000,12" -> 80000012)
-                let inputValue = this[displayField].replace(/\./g, '').replace(',', '.');
+                // Ambil nilai dari display dan konversi format (contoh: "3.000" -> 3000)
+                let inputValue = this[displayField].replace(/\./g, '');
                 if (inputValue === '' || isNaN(parseFloat(inputValue))) {
                     inputValue = '0';
                 }
 
-                // Konversi ke float, kalikan 100 untuk menyimpan sen, dan simpan sebagai integer
-                const numValue = Math.round(parseFloat(inputValue) * 100);
+                // Konversi ke integer
+                const numValue = Math.round(parseFloat(inputValue));
 
-                // Update nilai hidden (dalam satuan sen, misal 80000012 untuk Rp 800.000,12)
+                // Update nilai hidden (dalam satuan Rupiah utuh)
                 this.price[field] = numValue;
 
-                // Update display dengan format (tampilkan dalam Rp)
-                this[displayField] = this.formatCurrency(numValue / 100);
+                // Update display dengan format
+                this[displayField] = this.formatCurrency(numValue);
 
                 // Recalculate jika diperlukan (kecuali untuk harga beli)
                 if (field !== 'hargaBeli') {
@@ -396,12 +390,11 @@
                     // Hanya lakukan perhitungan jika harga pokok valid
                     if (hargaPokok > 0) {
                         // Hitung harga jual: hargaPokok * (1 + markup/100)
-                        // Pertahankan presisi dengan tidak membulatkan nilai
                         const hargaJual = Math.round(hargaPokok * (1 + (markup / 100)));
 
                         // Update nilai
                         this.price.hargaJual = hargaJual;
-                        this.displayHargaJual = this.formatCurrency(hargaJual / 100);
+                        this.displayHargaJual = this.formatCurrency(hargaJual);
 
                         // Update margin
                         const profit = hargaJual - hargaPokok;
@@ -443,13 +436,12 @@
                             hargaJual = hargaPokok * 10; // Nilai tinggi sebagai batas
                         } else {
                             // Hitung harga jual: hargaPokok / (1 - margin/100)
-                            // Pertahankan presisi dengan pembulatan ke sen
                             hargaJual = Math.round(hargaPokok / (1 - (margin / 100)));
                         }
 
                         // Update nilai
                         this.price.hargaJual = hargaJual;
-                        this.displayHargaJual = this.formatCurrency(hargaJual / 100);
+                        this.displayHargaJual = this.formatCurrency(hargaJual);
 
                         // Update markup
                         const profit = hargaJual - hargaPokok;

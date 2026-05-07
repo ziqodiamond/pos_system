@@ -161,12 +161,12 @@
                 <p class="flex justify-between text-gray-700 dark:text-gray-300">
                     <span class="font-medium">Total Diskon:</span>
                     <span class="text-blue-600 dark:text-blue-400"
-                        x-text="'Rp ' + formatCurrency(diskonNominal / 100)"></span>
+                        x-text="'Rp ' + formatCurrency(diskonNominal)"></span>
                 </p>
                 <p class="flex justify-between text-gray-700 dark:text-gray-300">
                     <span class="font-medium">Harga Jual Setelah Diskon:</span>
                     <span class="text-blue-600 dark:text-blue-400"
-                        x-text="'Rp ' + formatCurrency(hargaSetelahDiskon / 100)"></span>
+                        x-text="'Rp ' + formatCurrency(hargaSetelahDiskon)"></span>
                 </p>
                 <p class="flex justify-between text-gray-700 dark:text-gray-300">
                     <span class="font-medium">Margin Setelah Diskon:</span>

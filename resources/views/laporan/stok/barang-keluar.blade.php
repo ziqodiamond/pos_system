@@ -60,7 +60,7 @@
                             <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Nilai Barang Keluar
                             </p>
                             <p class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Rp {{ number_format($totalNilaiBarangKeluar / 100, 2, ',', '.') }}
+                                Rp {{ number_format($totalNilaiBarangKeluar, 0, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -168,11 +168,11 @@
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            Rp {{ number_format($item->harga_satuan / 100, 0, ',', '.') }}
+                                            Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            Rp {{ number_format($item->subtotal / 100, 0, ',', '.') }}
+                                            Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                         </td>
                                         <td
                                             class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

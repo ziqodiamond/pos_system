@@ -99,7 +99,7 @@
                             x-model.lazy="item.hargaSatuan" x-effect="$el.value = formatNumber(item.hargaSatuan)"
                             @blur="$event.target.value = formatNumber(item.hargaSatuan); calculateItemTotal(index)"
                             @keydown.down="navigateToNextRow(index)" @keydown.up="navigateToPreviousRow(index)"
-                            placeholder="0,00" autocomplete="off">
+                            placeholder="0" autocomplete="off">
 
                         <!-- Input hidden untuk menyimpan nilai harga satuan untuk dikirim ke server -->
                         <input type="hidden" :name="'items[' + index + '][harga_satuan]'"

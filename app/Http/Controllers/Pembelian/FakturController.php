@@ -62,12 +62,9 @@ class FakturController extends Controller
             // Log request masuk
             \Log::info('Payment Request:', $request->all());
 
-            // Konversi input pembayaran dari format rupiah ke integer
-            // Penjelasan: Input dalam format "Rp 1.000.000,00" dikonversi jadi integer sen
-            $bayar = (int) str_replace(['.', 'Rp ', ',00'], '', $request->nominal);
-
-            // Asumsi input sudah dalam rupiah bulat, jadi kali 100 untuk jadi sen
-            $bayar = $bayar * 100;
+            // Parse nominal dari format rupiah string ke integer rupiah
+            // Contoh: "Rp 1.000.000" → 1000000
+            $bayar = (int) str_replace(['.', 'Rp ', ','], '', $request->nominal);
 
             \Log::info('Converted payment amount:', ['bayar' => $bayar]);
 
@@ -75,27 +72,23 @@ class FakturController extends Controller
             $faktur = FakturPembelian::findOrFail($id);
             \Log::info('Found invoice:', ['faktur_id' => $id, 'total_hutang' => $faktur->total_hutang]);
 
-            // Logika pembulatan hutang ke rupiah terdekat
-            $total_hutang_rupiah = $faktur->total_hutang / 100;  // Konversi sen ke rupiah
-            $total_hutang_bulat = ceil($total_hutang_rupiah);    // Bulatkan ke atas ke rupiah terdekat
-            $total_hutang_bulat_sen = $total_hutang_bulat * 100; // Konversi kembali ke sen
+            // Logika pembulatan hutang ke rupiah terdekat (sudah dalam integer rupiah)
+            $total_hutang_bulat = ceil($faktur->total_hutang);
 
             \Log::info('Debt calculations:', [
-                'total_hutang_sen' => $faktur->total_hutang,
-                'total_hutang_rupiah' => $total_hutang_rupiah,
-                'total_hutang_bulat' => $total_hutang_bulat,
-                'total_hutang_bulat_sen' => $total_hutang_bulat_sen
+                'total_hutang' => $faktur->total_hutang,
+                'total_hutang_bulat' => $total_hutang_bulat
             ]);
 
             // Hitung sisa hutang
-            $sisa_hutang = $total_hutang_bulat_sen - $bayar;
+            $sisa_hutang = $total_hutang_bulat - $bayar;
             \Log::info('Remaining debt:', ['sisa_hutang' => $sisa_hutang]);
 
             // Validasi jumlah pembayaran tidak melebihi total hutang
             if ($sisa_hutang < 0) {
                 \Log::error('Payment exceeds total debt', [
                     'payment' => $bayar,
-                    'total_debt' => $total_hutang_bulat_sen
+                    'total_debt' => $total_hutang_bulat
                 ]);
                 throw new \Exception('Jumlah pembayaran melebihi total hutang');
             }
@@ -104,14 +97,14 @@ class FakturController extends Controller
             \DB::beginTransaction();
 
             try {
-                // Update faktur dengan sisa hutang baru
+                // Update faktur dengan sisa hutang baru (dalam integer rupiah)
                 $faktur->update([
                     'total_hutang' => $sisa_hutang
                 ]);
 
                 \Log::info('Invoice updated', ['faktur_id' => $id, 'new_total_hutang' => $sisa_hutang]);
 
-                // Buat record pembayaran
+                // Buat record pembayaran (dalam integer rupiah)
                 $payment = PembayaranFaktur::create([
                     'faktur_id' => $id,
                     'tanggal_pembayaran' => now(),

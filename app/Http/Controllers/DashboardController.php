@@ -46,13 +46,8 @@ class DashboardController extends Controller
             return $penjualan->details;
         })->sum('kuantitas');
 
-        // Hitung total omset
-        // Catatan: Pastikan format uang konsisten di seluruh aplikasi
-        // Jika nilai uang disimpan dalam sen/kecil, gunakan pembagi 100
+        // Hitung total omset (sudah dalam integer rupiah, tidak perlu /100)
         $totalOmset = $penjualanHariIni->sum('grand_total');
-
-        // Jika uang disimpan dalam format sen, uncomment baris di bawah ini
-        $totalOmset = $totalOmset / 100;
 
         // Jika request AJAX, kembalikan data dalam format JSON
         if ($request->ajax()) {
@@ -66,7 +61,7 @@ class DashboardController extends Controller
                             'tanggal' => Carbon::parse($transaction->created_at)->format('d M Y H:i'),
                             'kasir' => $transaction->kasir->name,
                             'total_barang' => $transaction->details->sum('kuantitas'),
-                            'grand_total' => number_format($transaction->grand_total / 100, 0, ',', '.'),
+                            'grand_total' => number_format($transaction->grand_total, 0, ',', '.'),
                         ];
                     })
                 ]);

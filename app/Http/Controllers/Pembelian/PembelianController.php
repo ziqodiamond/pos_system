@@ -178,8 +178,8 @@ class PembelianController extends Controller
                 // Periksa apakah uang muka melebihi grand total
                 if ($validatedData['uang_muka'] > $validatedData['grand_total']) {
                     // Ganti Log::warning ke session flash message
-                    session()->flash('warning', 'Uang muka (' . number_format($validatedData['uang_muka'] / 100) .
-                        ') lebih besar dari grand total (' . number_format($validatedData['grand_total'] / 100) . '). Nilai telah disesuaikan.');
+                    session()->flash('warning', 'Uang muka (' . number_format($validatedData['uang_muka'], 0, ',', '.') .
+                        ') lebih besar dari grand total (' . number_format($validatedData['grand_total'], 0, ',', '.') . '). Nilai telah disesuaikan.');
 
                     // Sesuaikan nilai yang masuk ke database agar konsisten
                     $fakturPembelian->total_bayar = $validatedData['grand_total'];

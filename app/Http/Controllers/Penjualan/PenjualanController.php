@@ -36,13 +36,8 @@ class PenjualanController extends Controller
             return $penjualan->details;
         })->sum('kuantitas');
 
-        // Hitung total omset
-        // Catatan: Pastikan format uang konsisten di seluruh aplikasi
-        // Jika nilai uang disimpan dalam sen/kecil, gunakan pembagi 100
+        // Hitung total omset (sudah dalam integer rupiah, tidak perlu /100)
         $totalOmset = $penjualanHariIni->sum('grand_total');
-
-        // Jika uang disimpan dalam format sen, uncomment baris di bawah ini
-        $totalOmset = $totalOmset / 100;
 
         // Jika request AJAX, kembalikan data dalam format JSON
         if ($request->ajax()) {

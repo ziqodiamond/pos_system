@@ -74,7 +74,7 @@ Route::middleware('auth', 'verified')->group(function () {
     });
 });
 
-Route::middleware('auth', 'role:gudang,admin,super_admin')->group(function () {
+Route::middleware('auth', 'verified', 'role:gudang,admin,super_admin')->group(function () {
     Route::prefix('master-data')->group(function () {
 
         Route::get('/', [MasterDataController::class, 'index'])->name('master-data.index');

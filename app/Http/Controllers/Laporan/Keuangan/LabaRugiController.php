@@ -126,10 +126,10 @@ class LabaRugiController extends Controller
 
                 $data[] = [
                     'periode' => $tglParsed->format('d M'),
-                    'pendapatan' => $item->total_pendapatan / 100, // Konversi ke format rupiah
-                    'hpp' => $hpp / 100,
-                    'operasional' => $operasional / 100,
-                    'pajak' => $item->total_pajak / 100
+                    'pendapatan' => $item->total_pendapatan, // Sudah dalam integer rupiah
+                    'hpp' => $hpp,
+                    'operasional' => $operasional,
+                    'pajak' => $item->total_pajak
                 ];
             }
         } else {
@@ -146,7 +146,7 @@ class LabaRugiController extends Controller
                     $bulanAkhir = $endDate;
                 }
 
-                // Total pendapatan (sudah termasuk pajak dan diskon)
+                // Total pendapatan (sudah termasuk pajak dan diskon, dalam integer rupiah)
                 $totalPendapatan = Penjualan::whereBetween('created_at', [$bulanAwal, $bulanAkhir])
                     ->sum('grand_total');
 
@@ -166,10 +166,10 @@ class LabaRugiController extends Controller
 
                 $data[] = [
                     'periode' => $currentDate->format('M Y'),
-                    'pendapatan' => $totalPendapatan / 100, // Konversi ke format rupiah
-                    'hpp' => $totalHPP / 100,
-                    'operasional' => $totalOps / 100,
-                    'pajak' => $totalPajak / 100
+                    'pendapatan' => $totalPendapatan, // Sudah dalam integer rupiah
+                    'hpp' => $totalHPP,
+                    'operasional' => $totalOps,
+                    'pajak' => $totalPajak
                 ];
             }
         }
@@ -202,9 +202,9 @@ class LabaRugiController extends Controller
             ->limit(10)
             ->get()
             ->map(function ($item) {
-                $item->total_pendapatan = $item->total_pendapatan / 100; // Konversi ke format rupiah
-                $item->total_hpp = $item->total_hpp / 100; // Konversi ke format rupiah
-                $item->profit = $item->profit / 100; // Konversi ke format rupiah
+                $item->total_pendapatan = $item->total_pendapatan; // Sudah dalam integer rupiah
+                $item->total_hpp = $item->total_hpp; // Sudah dalam integer rupiah
+                $item->profit = $item->profit; // Sudah dalam integer rupiah
                 $item->margin = $item->total_hpp > 0 ? round(($item->profit / $item->total_hpp) * 100, 2) : 0;
                 return $item;
             });
@@ -249,12 +249,12 @@ class LabaRugiController extends Controller
 
             $result[] = [
                 'tanggal' => $tanggal->format('d M Y'),
-                'pendapatan' => $penjualan->total_pendapatan / 100,
-                'hpp' => $hpp / 100,
-                'laba_kotor' => $labaKotor / 100,
-                'biaya_operasional' => $biayaOps / 100,
-                'pajak' => $penjualan->total_pajak / 100,
-                'laba_bersih' => $labaBersih / 100,
+                'pendapatan' => $penjualan->total_pendapatan, // Sudah dalam integer rupiah
+                'hpp' => $hpp, // Sudah dalam integer rupiah
+                'laba_kotor' => $labaKotor, // Sudah dalam integer rupiah
+                'biaya_operasional' => $biayaOps, // Sudah dalam integer rupiah
+                'pajak' => $penjualan->total_pajak, // Sudah dalam integer rupiah
+                'laba_bersih' => $labaBersih, // Sudah dalam integer rupiah
             ];
         }
 
@@ -357,12 +357,12 @@ class LabaRugiController extends Controller
             'tanggal_cetak' => $tanggalCetak,
             'startDate' => Carbon::parse($startDate)->format('d/m/Y'),
             'endDate' => Carbon::parse($endDate)->format('d/m/Y'),
-            'totalPendapatan' => number_format($totalPendapatan / 100, 0, ',', '.'),
-            'totalHPP' => number_format($totalHPP / 100, 0, ',', '.'),
-            'biayaOperasional' => number_format($biayaOperasional / 100, 0, ',', '.'),
-            'totalPajak' => number_format($totalPajak / 100, 0, ',', '.'),
-            'labaKotor' => number_format($labaKotor / 100, 0, ',', '.'),
-            'labaBersih' => number_format($labaBersih / 100, 0, ',', '.'),
+            'totalPendapatan' => number_format($totalPendapatan, 0, ',', '.'),
+            'totalHPP' => number_format($totalHPP, 0, ',', '.'),
+            'biayaOperasional' => number_format($biayaOperasional, 0, ',', '.'),
+            'totalPajak' => number_format($totalPajak, 0, ',', '.'),
+            'labaKotor' => number_format($labaKotor, 0, ',', '.'),
+            'labaBersih' => number_format($labaBersih, 0, ',', '.'),
             'produkTerlaris' => $produkTerlaris,
             'rincianLabaRugi' => $rincianLabaRugi,
         ];

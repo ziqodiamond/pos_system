@@ -18,7 +18,7 @@
         <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
             <input type="text" id="display_harga_pokok" x-model="displayHargaPokok"
-                x-on:blur="formatCurrencyInput('hargaPokok')" @input="recalculateAll()"
+                x-on:blur="formatCurrencyInput('hargaPokok'); $dispatch('hitung-diskon')" @input="recalculateAll()"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <input type="hidden" name="harga_pokok" x-model="price.hargaPokok" />
@@ -30,7 +30,8 @@
         <div class="relative">
             <span class="absolute left-3 top-2.5">Rp</span>
             <input type="text" id="display_harga_jual" x-model="displayHargaJual"
-                x-on:blur="formatCurrencyInput('hargaJual')" @input="calculateFromHargaJual()"
+                x-on:blur="formatCurrencyInput('hargaJual'); $dispatch('hitung-diskon')"
+                @input="calculateFromHargaJual()"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <input type="hidden" name="harga_jual" x-model="price.hargaJual" />
@@ -42,7 +43,7 @@
         </label>
         <div class="relative">
             <input type="text" id="markup" x-model="displayMarkup" @input="updateHargaJualFromMarkup()"
-                @blur="formatPercentageInput('markup')"
+                @blur="formatPercentageInput('markup'); $dispatch('hitung-diskon')"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <span class="absolute right-3 top-2.5">%</span>
@@ -55,7 +56,7 @@
         </label>
         <div class="relative">
             <input type="text" id="margin" x-model="displayMargin" @input="updateHargaJualFromMargin()"
-                @blur="formatPercentageInput('margin')"
+                @blur="formatPercentageInput('margin'); $dispatch('hitung-diskon')"
                 class="text-right bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required />
             <span class="absolute right-3 top-2.5">%</span>
@@ -341,7 +342,7 @@
         </div>
 
         <!-- Diskon Field dengan informasi tambahan -->
-        <div x-data="diskonCalculatorAdd">
+        <div x-data="diskonCalculatorAdd" @hitung-diskon.window="hitungDiskon()">
             <label for="diskon" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Diskon
                 (%)</label>
             <input type="text" id="diskon_display" x-model="displayDiskonPersen" @input="hitungDiskon()"
@@ -427,41 +428,28 @@
             },
 
             hitungDiskon() {
-                // Dapatkan nilai harga jual dan harga pokok dari form utama
+                // Baca langsung dari input DOM (sudah diformat saat blur)
                 const hargaJualElem = document.getElementById('display_harga_jual');
                 const hargaPokokElem = document.getElementById('display_harga_pokok');
 
                 if (!hargaJualElem || !hargaPokokElem) return;
 
-                // Ambil nilai dan bersihkan format
-                let hargaJualStr = hargaJualElem.value.replace(/\./g, '').replace(',', '.');
-                let hargaPokokStr = hargaPokokElem.value.replace(/\./g, '').replace(',', '.');
+                // Bersihkan titik pemisah ribuan, langsung parse integer
+                const hargaJual = parseInt(hargaJualElem.value.replace(/\./g, '')) || 0;
+                const hargaPokok = parseInt(hargaPokokElem.value.replace(/\./g, '')) || 0;
 
-                // Konversi ke angka dan kalikan 100 untuk mendapatkan nilai dalam sen
-                let hargaJual = Math.round(parseFloat(hargaJualStr) * 100) || 0;
-                let hargaPokok = Math.round(parseFloat(hargaPokokStr) * 100) || 0;
-
-                // Hitung nominal diskon (tanpa pembulatan, untuk menjaga presisi sen)
-                const diskonPersenFloat = parseFloat(this.diskonPersen);
+                // Hitung nominal diskon
+                const diskonPersenFloat = parseFloat(this.diskonPersen) || 0;
                 this.diskonNominal = Math.round((hargaJual * diskonPersenFloat) / 100);
 
-                // Hitung harga setelah diskon
+                // Harga setelah diskon
                 this.hargaSetelahDiskon = hargaJual - this.diskonNominal;
 
                 // Hitung margin dan markup setelah diskon
                 if (this.hargaSetelahDiskon > 0) {
-                    const profitSetelahDiskon = this.hargaSetelahDiskon - hargaPokok;
-
-                    // Hitung margin setelah diskon (dengan presisi 2 desimal)
-                    this.marginSetelahDiskon = (profitSetelahDiskon / this.hargaSetelahDiskon) *
-                        100;
-
-                    // Hitung markup setelah diskon (jika harga pokok > 0)
-                    if (hargaPokok > 0) {
-                        this.markupSetelahDiskon = (profitSetelahDiskon / hargaPokok) * 100;
-                    } else {
-                        this.markupSetelahDiskon = 0;
-                    }
+                    const profit = this.hargaSetelahDiskon - hargaPokok;
+                    this.marginSetelahDiskon = (profit / this.hargaSetelahDiskon) * 100;
+                    this.markupSetelahDiskon = hargaPokok > 0 ? (profit / hargaPokok) * 100 : 0;
                 } else {
                     this.marginSetelahDiskon = 0;
                     this.markupSetelahDiskon = 0;
@@ -469,20 +457,13 @@
             },
 
             formatCurrency(value) {
-                if (!value && value !== 0) return '0,00';
+                if (!value && value !== 0) return '0';
 
-                // Konversi ke float dengan 2 desimal
-                let numValue = parseFloat(value);
+                // Bulatkan ke integer, tanpa sen
+                let numValue = Math.round(parseFloat(value));
                 if (isNaN(numValue)) numValue = 0;
 
-                // Format dengan pemisah ribuan (titik) dan desimal (koma)
-                let parts = numValue.toFixed(2).split('.');
-
-                // Tambahkan pemisah ribuan (titik) untuk bagian integer
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                // Gabungkan kembali dengan koma sebagai pemisah desimal
-                return parts.join(',');
+                return numValue.toLocaleString('id-ID');
             },
 
             formatPercentage(value) {
